@@ -1,10 +1,12 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Main where
 import qualified Data.Set as S
+import Control.Applicative
 
 
 
-main = print $ fmap ((\x -> x - 1) . (+1)) [1..3]
+
+main = print $ Jsut [(+1),(+5)] <<*>> Just [1,3]
 
 newtype Velocity = Velocity Int deriving (Num,Eq)
 
@@ -23,6 +25,14 @@ instance Eq MyNum where
 
 
 data Tree a = Leaf a | Branch (Tree (a,a)) deriving Show
+
+
+(<<*>>) :: f1 (f2 (a -> b)) -> f1 (f2 a) -> f1 (f2 b)
+(<<*>>) = liftA2 (<*>)
+
+
+
+
 
 
 
