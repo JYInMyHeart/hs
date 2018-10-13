@@ -35,6 +35,24 @@ satisfy f = Parser $ \str -> case str of
 char ::Char -> Parser Char
 char c = satisfy (==c)
 
-main = print $ (runParser $ char '<' *> many (satisfy isDigit) <* char '>') "<321>"
+number :: Parser Int
+number = fmap (foldl (\x y -> 10 * x + y) 0) (many digit)
+    where digit = fmap digitToInt (satisfy isDigit)
+
+sequ :: Parser a -> Parser [a] -> Parser [a]
+sequ x y = Parser $ \str -> 
+    case runParser x str of
+        Nothing -> Nothing
+        Just (s,ss) -> 
+            case runParser y ss of
+                Nothing -> Nothing
+                Just (s1,ss1) -> Just (s:s1,ss1)
+
+parseStr :: String -> Parser String
+parseStr strs = foldr sequ (Parser $ \str -> Just ("",str)) [char s | s <- strs]
+
+
+-- main = print $ (runParser $ char '<' *> some (satisfy isDigit) <* char '>') "<321>"
+main = print $ runParser (parseStr "hello") "helloworld"
 
     
