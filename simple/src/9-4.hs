@@ -27,4 +27,7 @@ traverse1 f (x:xs) = (:) <$> f x <*> traverse1 f xs
 
 sequenceA1 [] = pure []
 sequenceA1 (x:xs) = (:) <$> x <*> sequenceA1 xs
+
+
+
 main = print $ traverse1 (\x -> if x == 0 then Nothing else Just (x + 1)) [1,2,3,4,5]
