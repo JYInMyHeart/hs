@@ -45,5 +45,18 @@ selectionSort xs = mini : selectionSort xs'
     where mini = minimum xs
           xs'  = delete mini xs
 
+instance Applicative Maybe where
+    pure = Just
+    Just f <*> Just a = Just (f a)
+    _ <*> _ = Nothing
+
+instance Monad Maybe where
+    return = Just
+    (Just a) >>= f = f a
+    Nothing >>= _ = Nothing
+    fail _ = Nothing
+
+
+
 -- main = print $ Identity 5 >>= \a -> Identity (odd a) >>= \b -> Identity (not b)
-main = print $ selectionSort [1,4,6,43,2]
+main = print $ (\b -> Just (b + 4)) 3
