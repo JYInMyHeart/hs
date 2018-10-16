@@ -1,22 +1,23 @@
 
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverlappingInstances #-}
 
 class Printf t where
-    printf :: String -> t 
+    printf :: String -> t
 
--- instance Printf (IO ()) where
---     printf1 a = putStrLn a
+instance Printf (IO ()) where
+    printf = putStrLn
 
--- instance Show t => Printf (t -> IO ()) where
---     printf1 cs x = putStrLn (format cs x)
-
-instance {-# OVERLAPPING #-} (Show u,Show t) => Printf (u -> t ) where
-    printf cs  = \x -> printf (format cs x)
+instance Show t => Printf (t -> IO ()) where
+    printf cs x = putStrLn (format cs x)
+-- {-# OVERLAPPING #-}
+instance (Show u,Printf t) => Printf (u ->  t) where
+    printf cs  = printf . format cs
 
 format :: Show t => String -> t -> String
 format ('%':'s':cs) cs' = show cs' ++ cs
-format (c:cs) cs' = c : format cs cs'
-format "" cs' = ""
+format (c:cs) cs'       = c : format cs cs'
+format "" cs'           = ""
 test2 :: IO ()
-test2 = printf  "we formatted an integer: %s " "1" 
-main =  test2
+test2 =  printf  "we formatted an integer: %s %s %s %s" "1" "2" "3" (1,2)
+main =   test2
