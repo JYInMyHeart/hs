@@ -12,6 +12,8 @@ unflatten :: [Int] -> [[Int]]
 unflatten x = case x of
   [] -> []
   (y:ys) ->
-     if y < 3 then [y] : unflatten ys else ((y : take (y - 1) ys) : unflatten (drop (y -1) ys))
+     if y < 3 
+      then [y] : unflatten ys 
+      else (y : take (y - 1) ys) : unflatten (drop (y -1) ys)
 
 main = print $ unflatten [1,4,5,2,1,2,4,5,2,6,2,3,3]

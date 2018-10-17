@@ -1,3 +1,4 @@
+module SafeEval where
 import Control.Monad
 data Exp = Lit Integer
     | Add Exp Exp

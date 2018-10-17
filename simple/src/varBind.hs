@@ -1,3 +1,4 @@
+module VarBind where
 import           Control.Monad.Reader
 import           Data.List            (lookup)
 

@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs #-}
+module Overloading where
 data Rect = Rect Double Double
 
 data Circle = Circle Double

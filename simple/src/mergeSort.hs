@@ -1,3 +1,4 @@
+module MergeSort where
 import           Control.Monad.Writer
 
 merge [] xs = xs
