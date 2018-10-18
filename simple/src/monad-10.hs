@@ -57,6 +57,11 @@ instance Monad Maybe where
     fail _ = Nothing
 
 
+evalSeq :: Maybe Integer -> (Integer -> Maybe Integer) -> Maybe Integer
+evalSeq mi f = case mi of
+    Nothing -> Nothing
+    Just a  -> f a
+
 
 -- main = print $ Identity 5 >>= \a -> Identity (odd a) >>= \b -> Identity (not b)
 main = print $ (\b -> Just (b + 4)) 3
