@@ -1,9 +1,11 @@
 module Main where
-import Data.Char
-import System.Environment (getArgs)
-import Cal
+import           Cal                (calculate)
+import           Data.Char
+import           System.Environment (getArgs)
 
 main :: IO ()
 main = do
-    expr <- getArgs 
+    expr <- getArgs
     print $ calculate $ concat expr
+
+

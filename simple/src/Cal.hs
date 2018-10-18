@@ -216,4 +216,4 @@ calculate = num.cal
 test1 = [Right Nega ,Left (Const "pi")]
 
 
-
+main = print $ calculate "2^4"
