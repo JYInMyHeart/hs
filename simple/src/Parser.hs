@@ -47,6 +47,9 @@ data ParseError =
 appendError :: ParseError -> Message -> ParseError
 appendError (ParseError a) msg = ParseError (msg : a)
 
+mergeError :: ParseError -> ParseError -> ParseError
+mergeError (ParseError a) (ParseError b) = ParseError (a ++ b)
+
 data Consumed a
   = Consumed a
   | Empty a
@@ -93,6 +96,13 @@ instance Alternative (Parser s) where
             consumed -> consumed
         consumed -> consumed
 
+try :: Parser String a -> Parser String a
+try p =
+  Parser $ \input err ->
+    case (runParser p input err) of
+      Consumed (Error err') -> Empty (Error err')
+      result -> result
+
 (<?>) :: Parser s a -> Message -> Parser s a
 (<?>) p msg =
   Parser $ \st err ->
@@ -117,6 +127,9 @@ satisfy f =
 char :: Char -> Parser String Char
 char c = satisfy (== c) <?> Info ("expect a character " ++ show c)
 
+number :: Parser String Char
+number = satisfy isDigit <?> Info ("expect a character ")
+
 letter :: Parser String Char
 letter = satisfy isAlpha <?> Info "expect an alpha"
 
@@ -135,4 +148,75 @@ parse str p =
     Empty (Ok r st err) -> r
     Empty (Error err) -> error $ show err
 
-main = print $ parse "sdg" (string "aaa")
+data Exp
+  = Add Exp
+        Exp
+  | Mul Exp
+        Exp
+  | Val Double
+  deriving (Eq, Show)
+
+eval (Val v) = v
+eval (Add e1 e2) = eval e1 + eval e2
+eval (Mul e1 e2) = eval e1 * eval e2
+
+eval' :: Parser String Double
+eval' = do
+  e1 <- parseExp
+  return $ eval e1
+
+--Exp ::== Mul Exp'
+parseExp :: Parser String Exp
+parseExp = do
+  e1 <- parseMul
+  e2 <- parseExp'
+  case e2 of
+    Nothing -> return e1
+    Just e -> return (e e1)
+
+-- Exp' ::== + Mul Exp' | ""
+parseExp' :: Parser String (Maybe (Exp -> Exp))
+parseExp' =
+  try
+    (do char '+'
+        e1 <- parseMul
+        e2 <- parseExp'
+        case e2 of
+          Nothing -> return (Just (\e -> Add e e1))
+          Just e -> return (Just (\e' -> e (Add e' e1)))) <|>
+  return Nothing
+
+-- Mul ::== Num Mul'
+parseMul :: Parser String Exp
+parseMul = do
+  e1 <- parseNum
+  e2 <- parseMul'
+  case e2 of
+    Nothing -> return e1
+    Just e -> return (e e1)
+
+-- Mul' ::== * Num Mul' | ""
+parseMul' :: Parser String (Maybe (Exp -> Exp))
+parseMul' =
+  try
+    (do char '*'
+        e1 <- parseNum
+        e2 <- parseMul'
+        case e2 of
+          Nothing -> return (Just (\e -> Mul e e1))
+          Just e -> return (Just (\e' -> e (Mul e' e1)))) <|>
+  return Nothing
+
+-- Num ::== (Exp) | Number
+parseNum :: Parser String Exp
+parseNum =
+  try
+    (do char '('
+        e1 <- parseExp
+        char ')'
+        return e1) <|> do
+    num <- number
+    return (Val (read [num]))
+
+main = print $ eval $ parse "1+3" parseExp
+-- main = print $ parse "(1)" parseNum
