@@ -164,6 +164,6 @@ parseNum =
     num <- number
     return (Val num)
 
-test1 = fmap eval $ parse parseExp "" "1)+-2-3"
+test1 = fmap eval $ parse parseExp "" "1 + -2-3"
 
 main = print test1
