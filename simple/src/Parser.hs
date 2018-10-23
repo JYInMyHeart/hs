@@ -1,14 +1,14 @@
 module Parser where
 
-import Control.Applicative
-import Data.Char
+import           Control.Applicative
+import           Data.Char
 
 type Line = Int
 
 type Column = Int
 
 data Pos = Pos
-  { getLine :: Line
+  { getLine   :: Line
   , getColumn :: Column
   } deriving (Eq, Show)
 
@@ -17,14 +17,14 @@ updatePos (Pos l c) char =
   case char of
     '\n' -> Pos (l + 1) 1
     '\t' -> Pos 1 ((c + 8 - (c - 1) `mod` 8))
-    _ -> Pos l (c + 1)
+    _    -> Pos l (c + 1)
 
 initialPos :: Pos
 initialPos = Pos 1 1
 
 data State s = State
   { stateInput :: s
-  , statePos :: Pos
+  , statePos   :: Pos
   } deriving (Eq, Show)
 
 data Reply s a
@@ -63,9 +63,9 @@ instance Functor (Parser s) where
     Parser $ \st error ->
       case runParser p st error of
         Consumed (Ok r st' err) -> Consumed (Ok (f r) st' err)
-        Consumed (Error err) -> Consumed (Error err)
-        Empty (Ok r st' err) -> Empty (Ok (f r) st' err)
-        Empty (Error err) -> Empty (Error err)
+        Consumed (Error err)    -> Consumed (Error err)
+        Empty (Ok r st' err)    -> Empty (Ok (f r) st' err)
+        Empty (Error err)       -> Empty (Error err)
 
 instance Monad (Parser s) where
   return inp = Parser $ \st error -> Empty (Ok inp st error)
@@ -73,9 +73,9 @@ instance Monad (Parser s) where
     Parser $ \st error ->
       case runParser p st error of
         Consumed (Ok r st' err) -> runParser (f r) st' err
-        Consumed (Error err) -> Consumed (Error err)
-        Empty (Ok r st' err) -> runParser (f r) st' err
-        Empty (Error err) -> Empty (Error err)
+        Consumed (Error err)    -> Consumed (Error err)
+        Empty (Ok r st' err)    -> runParser (f r) st' err
+        Empty (Error err)       -> Empty (Error err)
 
 instance Applicative (Parser s) where
   pure = return
@@ -92,7 +92,7 @@ instance Alternative (Parser s) where
         Empty (Error err') -> runParser q st err
         Empty o@(Ok r st' err') ->
           case runParser q st err of
-            Empty _ -> Empty o
+            Empty _  -> Empty o
             consumed -> consumed
         consumed -> consumed
 
@@ -101,15 +101,15 @@ try p =
   Parser $ \input err ->
     case (runParser p input err) of
       Consumed (Error err') -> Empty (Error err')
-      result -> result
+      result                -> result
 
 (<?>) :: Parser s a -> Message -> Parser s a
 (<?>) p msg =
   Parser $ \st err ->
     case runParser p st err of
-      Empty (Error err') -> Empty (Error (appendError err' msg))
+      Empty (Error err')    -> Empty (Error (appendError err' msg))
       Consumed (Error err') -> Consumed (Error (appendError err' msg))
-      result -> result
+      result                -> result
 
 satisfy :: (Char -> Bool) -> Parser String Char
 satisfy f =
@@ -144,9 +144,9 @@ parse :: String -> Parser String a -> a
 parse str p =
   case runParser p (State str initialPos) (ParseError []) of
     Consumed (Ok r st' err) -> r
-    Consumed (Error err) -> error $ show err
-    Empty (Ok r st err) -> r
-    Empty (Error err) -> error $ show err
+    Consumed (Error err)    -> error $ show err
+    Empty (Ok r st err)     -> r
+    Empty (Error err)       -> error $ show err
 
 data Exp
   = Add Exp
@@ -156,7 +156,7 @@ data Exp
   | Val Double
   deriving (Eq, Show)
 
-eval (Val v) = v
+eval (Val v)     = v
 eval (Add e1 e2) = eval e1 + eval e2
 eval (Mul e1 e2) = eval e1 * eval e2
 
@@ -172,7 +172,7 @@ parseExp = do
   e2 <- parseExp'
   case e2 of
     Nothing -> return e1
-    Just e -> return (e e1)
+    Just e  -> return (e e1)
 
 -- Exp' ::== + Mul Exp' | ""
 parseExp' :: Parser String (Maybe (Exp -> Exp))
@@ -183,7 +183,7 @@ parseExp' =
         e2 <- parseExp'
         case e2 of
           Nothing -> return (Just (\e -> Add e e1))
-          Just e -> return (Just (\e' -> e (Add e' e1)))) <|>
+          Just e  -> return (Just (\e' -> e (Add e' e1)))) <|>
   return Nothing
 
 -- Mul ::== Num Mul'
@@ -193,7 +193,7 @@ parseMul = do
   e2 <- parseMul'
   case e2 of
     Nothing -> return e1
-    Just e -> return (e e1)
+    Just e  -> return (e e1)
 
 -- Mul' ::== * Num Mul' | ""
 parseMul' :: Parser String (Maybe (Exp -> Exp))
@@ -204,7 +204,7 @@ parseMul' =
         e2 <- parseMul'
         case e2 of
           Nothing -> return (Just (\e -> Mul e e1))
-          Just e -> return (Just (\e' -> e (Mul e' e1)))) <|>
+          Just e  -> return (Just (\e' -> e (Mul e' e1)))) <|>
   return Nothing
 
 -- Num ::== (Exp) | Number
@@ -218,5 +218,5 @@ parseNum =
     num <- number
     return (Val (read [num]))
 
-main = print $ eval $ parse "1+3" parseExp
+main = print $ eval $ parse "(1+3)*4" parseExp
 -- main = print $ parse "(1)" parseNum
