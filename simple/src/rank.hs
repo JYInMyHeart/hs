@@ -1,4 +1,5 @@
 {-# LANGUAGE Rank2Types #-}
+
 import Control.Monad.ST
 import Data.STRef
 
@@ -15,13 +16,12 @@ factorial n accRef = do
       factorial (num - 1) accRef
 
 fact :: Int -> Int
-fact n = 
+fact n =
   runST $ do
-    accRef <- new STRef 1
+    accRef <- newSTRef 1
     factorial n accRef
 
-foo :: (forall a . [a] -> [a]) -> ([b],[c]) -> ([b],[c])
-foo f (xs,ys) = (f xs,f ys)
+foo :: (forall a. [a] -> [a]) -> ([b], [c]) -> ([b], [c])
+foo f (xs, ys) = (f xs, f ys)
 
-main = print $ foo (take 2) ([1,2,3],"456")
-
+main = print $ foo (take 2) ([1, 2, 3], "456")
