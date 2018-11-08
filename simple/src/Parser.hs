@@ -54,9 +54,7 @@ data Consumed a
   = Consumed a
   | Empty a
 
-data Parser s a = Parser
-  { runParser :: State s -> ParseError -> Consumed (Reply s a)
-  }
+data Parser s a = Parser { runParser :: State s -> ParseError -> Consumed (Reply s a) }
 
 instance Functor (Parser s) where
   fmap f p =
@@ -133,9 +131,13 @@ number = satisfy isDigit <?> Info ("expect a character ")
 letter :: Parser String Char
 letter = satisfy isAlpha <?> Info "expect an alpha"
 
+oneOf = satisfy . flip elem
+spaces = many $ oneOf " \n\r\t"
+
 string :: String -> Parser String String
 string [] = return []
 string (s:str) = do
+  spaces
   c <- char s
   cs <- string str
   return (c : cs)
@@ -168,6 +170,7 @@ eval' = do
 --Exp ::== Mul Exp'
 parseExp :: Parser String Exp
 parseExp = do
+  spaces
   e1 <- parseMul
   e2 <- parseExp'
   case e2 of
@@ -178,7 +181,8 @@ parseExp = do
 parseExp' :: Parser String (Maybe (Exp -> Exp))
 parseExp' =
   try
-    (do char '+'
+    (do spaces
+        char '+'
         e1 <- parseMul
         e2 <- parseExp'
         case e2 of
@@ -189,6 +193,7 @@ parseExp' =
 -- Mul ::== Num Mul'
 parseMul :: Parser String Exp
 parseMul = do
+  spaces
   e1 <- parseNum
   e2 <- parseMul'
   case e2 of
@@ -199,7 +204,8 @@ parseMul = do
 parseMul' :: Parser String (Maybe (Exp -> Exp))
 parseMul' =
   try
-    (do char '*'
+    (do spaces
+        char '*'
         e1 <- parseNum
         e2 <- parseMul'
         case e2 of
@@ -211,12 +217,14 @@ parseMul' =
 parseNum :: Parser String Exp
 parseNum =
   try
-    (do char '('
+    (do spaces
+        char '('
         e1 <- parseExp
         char ')'
         return e1) <|> do
     num <- number
     return (Val (read [num]))
 
-main = print $ eval $ parse "(1+3)*4" parseExp
+main = print $ eval $ parse "(1+3)* 4" parseExp
 -- main = print $ parse "(1)" parseNum
+
