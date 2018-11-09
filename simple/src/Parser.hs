@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Parser where
 
 import           Control.Applicative
@@ -122,14 +123,37 @@ satisfy f =
           (Error
              (ParseError [Err ("error at " ++ show pos ++ " input exausted.")]))
 
-char :: Char -> Parser String Char
-char c = satisfy (== c) <?> Info ("expect a character " ++ show c)
 
-number :: Parser String Char
-number = satisfy isDigit <?> Info ("expect a character ")
+chainl1 q op = do
+  s <- q
+  rest s
+  where
+    rest s = (do
+      f <- op
+      b <- q
+      rest $ f s b)
+      <|> return s
+
+
+
+chainl p op = (chainl1 p op <|>) . return
+binOp s = (string s >>) . return
+addOp  =  binOp "+" $ \x y -> Add  (Val x) (Val y)
+
+
+char :: Char -> Parser String Char
+char c = spaces >> satisfy (== c) <?> Info ("expect a character " ++ show c)
+
+number = do
+  s <- string "-" <|> return []
+  cs <- some digit
+  return $ read $ s ++ cs
+
+digit :: Parser String Char
+digit = spaces >> satisfy isDigit <?> Info ("expect a character ")
 
 letter :: Parser String Char
-letter = satisfy isAlpha <?> Info "expect an alpha"
+letter = spaces >> satisfy isAlpha <?> Info "expect an alpha"
 
 oneOf = satisfy . flip elem
 spaces = many $ oneOf " \n\r\t"
@@ -137,7 +161,6 @@ spaces = many $ oneOf " \n\r\t"
 string :: String -> Parser String String
 string [] = return []
 string (s:str) = do
-  spaces
   c <- char s
   cs <- string str
   return (c : cs)
@@ -170,7 +193,6 @@ eval' = do
 --Exp ::== Mul Exp'
 parseExp :: Parser String Exp
 parseExp = do
-  spaces
   e1 <- parseMul
   e2 <- parseExp'
   case e2 of
@@ -181,7 +203,7 @@ parseExp = do
 parseExp' :: Parser String (Maybe (Exp -> Exp))
 parseExp' =
   try
-    (do spaces
+    (do
         char '+'
         e1 <- parseMul
         e2 <- parseExp'
@@ -193,7 +215,6 @@ parseExp' =
 -- Mul ::== Num Mul'
 parseMul :: Parser String Exp
 parseMul = do
-  spaces
   e1 <- parseNum
   e2 <- parseMul'
   case e2 of
@@ -204,7 +225,7 @@ parseMul = do
 parseMul' :: Parser String (Maybe (Exp -> Exp))
 parseMul' =
   try
-    (do spaces
+    (do
         char '*'
         e1 <- parseNum
         e2 <- parseMul'
@@ -217,14 +238,13 @@ parseMul' =
 parseNum :: Parser String Exp
 parseNum =
   try
-    (do spaces
+    (do
         char '('
         e1 <- parseExp
         char ')'
-        return e1) <|> do
-    num <- number
-    return (Val (read [num]))
+        return e1) <|> do Val <$> number
 
-main = print $ eval $ parse "(1+3)* 4" parseExp
+-- main = print $ eval $ parse "-11 + 1 + 1" parseExp
+main = print $ addOp 1  2
 -- main = print $ parse "(1)" parseNum
 
