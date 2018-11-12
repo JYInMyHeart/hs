@@ -1,80 +1,89 @@
-
-
-import           Control.Applicative hiding (many)
-import           Control.Monad
-import           Data.Char
-
+import Control.Applicative hiding (many)
+import Control.Monad
+import Data.Char
 
 parse :: String -> Maybe Value
-parse s = parseCode  value s
+parse s = parseCode value s
+
 a = sat (/= '-')
-main = print $ parseCode value "{\"menu\":{\"header\":\"SVG Viewer\",\"items\":[{\"id\":\"Open\"},{\"id\":\"OpenNew\",\"label\":\"Open New\"},null,{\"id\":\"ZoomIn\",\"label\":\"Zoom In\"},{\"id\":\"ZoomOut\",\"label\":\"Zoom Out\"},{\"id\":\"OriginalView\",\"label\":\"Original View\"},null,{\"id\":\"Quality\"},{\"id\":\"Pause\"},{\"id\":\"Mute\"},null,{\"id\":\"Find\",\"label\":\"Find...\"},{\"id\":\"FindAgain\",\"label\":\"Find Again\"},{\"id\":\"Copy\"},{\"id\":\"CopyAgain\",\"label\":\"Copy Again\"},{\"id\":\"CopySVG\",\"label\":\"Copy SVG\"},{\"id\":\"ViewSVG\",\"label\":\"View SVG\"},{\"id\":\"ViewSource\",\"label\":\"View Source\"},{\"id\":\"SaveAs\",\"label\":\"Save As\"},null,{\"id\":\"Help\"},{\"id\":\"About\",\"label\":\"About Adobe CVG Viewer...\"}]}"
--- main = print $ parse "{\"ab\":[123,3]}"
 
-data Value = String String
-           | Number Double
-           | Object [(Value,Value)] -- an association list -- only a `String` is valid as the index `Value`
-           | Array [Value]          -- not limited to identical primitive datatypes
-           | Boolean Bool           -- either `True` or `False`
-           | Null deriving (Show)
+-- main = print $ parseCode value "{\"menu\":{\"header\":\"SVG Viewer\",\"items\":[{\"id\":\"Open\"},{\"id\":\"OpenNew\",\"label\":\"Open New\"},null,{\"id\":\"ZoomIn\",\"label\":\"Zoom In\"},{\"id\":\"ZoomOut\",\"label\":\"Zoom Out\"},{\"id\":\"OriginalView\",\"label\":\"Original View\"},null,{\"id\":\"Quality\"},{\"id\":\"Pause\"},{\"id\":\"Mute\"},null,{\"id\":\"Find\",\"label\":\"Find...\"},{\"id\":\"FindAgain\",\"label\":\"Find Again\"},{\"id\":\"Copy\"},{\"id\":\"CopyAgain\",\"label\":\"Copy Again\"},{\"id\":\"CopySVG\",\"label\":\"Copy SVG\"},{\"id\":\"ViewSVG\",\"label\":\"View SVG\"},{\"id\":\"ViewSource\",\"label\":\"View Source\"},{\"id\":\"SaveAs\",\"label\":\"Save As\"},null,{\"id\":\"Help\"},{\"id\":\"About\",\"label\":\"About Adobe CVG Viewer...\"}]}"
+-- main = print $ parse "{\"header\":\"About Adobe CVG Viewer...\"}"
+main = print $ parse "-61.250030290018081212121"
 
+data Value
+  = String String
+  | Number Double
+  | Object [(Value, Value)] -- an association list -- only a `String` is valid as the index `Value`
+  | Array [Value] -- not limited to identical primitive datatypes
+  | Boolean Bool -- either `True` or `False`
+  | Null
+  deriving (Show)
 
-
-parseObject = (do
-  symb "{"
-  m <- members
-  symb "}"
-  return $ Object m) <|> do
+parseObject =
+  (do symb "{"
+      m <- members
+      symb "}"
+      return $ Object m) <|> do
     symb "{"
     t <- return []
     symb "}"
     return $ Object t
 
 true = do
-  symb "true"
+  space >> char 't' >> char 'r' >> char 'u' >> char 'e' >> space
   return $ Boolean True
+
 false = do
-  symb "false"
+  space >> char 'f' >> char 'a' >> char 'l' >> char 's' >> char 'e' >> space
   return $ Boolean False
+
 nu = do
-  symb "null"
+  space >> char 'n' >> char 'u' >> char 'l' >> char 'l' >> space
   return Null
-array = (do
-  symb "["
-  a1 <- return []
-  a <- value
-  b <- many values
-  symb "]"
-  return $ Array $ a1 ++ [a] ++ b)   <|> do
-     symb "["
-     a <- return []
-     symb "]"
-     return $ Array a
+
+array =
+  (do symb "["
+      a1 <- return []
+      a <- value
+      b <- many values
+      symb "]"
+      return $ Array $ a1 ++ [a] ++ b) <|> do
+    symb "["
+    a <- return []
+    symb "]"
+    return $ Array a
 
 values = do
   symb ","
   value
-str  =  do
-  symb "\""
+
+str = do
+  char '\"'
   cs <- many any'
-  symb "\""
-  return $ String  cs
+  char '\"'
+  return $ String cs
+
 any' = sat (`elem` something)
 
-something = ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'] ++ "!@#$%^&*()~!+_ '\\"
-value =  frac <|> nu <|> array <|> false <|> true <|> parseObject <|> str
+something =
+  [' '] ++
+  ['a' .. 'z'] ++
+  ['A' .. 'Z'] ++ ['0' .. '9'] ++ "!@#$%^&:*()~/!+[?,><]{};=-'|._ '\\\r\t\n"
+
+value = frac <|> nu <|> array <|> false <|> true <|> parseObject <|> str
+
 pair = do
   a <- str
   symb ":"
   b <- value
-  return $ (a,b)
+  return $ (a, b)
 
 members = do
   s <- return []
-  cs <-  pair
+  cs <- pair
   cs1 <- many pair'
   return $ s ++ [cs] ++ cs1
-
 
 pair' = do
   symb ","
@@ -115,7 +124,7 @@ item =
   Parser
     (\cs ->
        case cs of
-         ""     -> []
+         "" -> []
          (c:cs) -> [(c, cs)])
 
 sat :: (Char -> Bool) -> Parser Char
@@ -126,12 +135,14 @@ sat p = do
     else mzero
 
 char :: Char -> Parser Char
-char c = space >> sat (c ==)
+char c = sat (c ==)
 
 string :: String -> Parser String
 string "" = return ""
 string (c:cs) = do
+  space
   char c
+  space
   string cs
   return (c : cs)
 
@@ -203,17 +214,27 @@ parseCode :: Parser a -> String -> Maybe a
 parseCode p s =
   case apply p s of
     [(res, [])] -> Just res
-    _           -> Nothing
-digit = sat isDigit
-number = do
-  s <- string "-" <|> return []
-  cs <- some digit
-  return $  s ++ cs
+    _ -> Nothing
 
-frac =  (do
-    a <- number
-    symb "."
-    b <- number
-    return $ Number $ read $ a ++ "." ++ b) <|> do
-      c <- number
-      return $ Number $ read  c
+digit = sat isDigit
+
+oneOf = sat . flip elem
+
+num = oneOf ['1' .. '9']
+
+number =
+  (do s <- string "-" <|> return []
+      cs <- num
+      css <- many digit
+      return $ s ++ [cs] ++ css) <|> do
+    a <- string "0"
+    return a
+
+frac =
+  (do s <- string "-" <|> return []
+      a <- some digit
+      symb "."
+      b <- some digit
+      return $ Number $ read $ s ++ a ++ "." ++ b) <|> do
+    c <- number
+    return $ Number $ read c

@@ -159,4 +159,5 @@ mulop =
   (do symb "/"
       return div)
 
+
 main = print $ parseCode expr " 1 + 11 + 1 + 1 * 23424 -1 - 1 -2 -3 "
