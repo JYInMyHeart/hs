@@ -1,9 +1,9 @@
-import Control.Applicative
-import Control.Monad
-import Data.Char
-import Data.List
-import Data.List.Split (splitOn)
-import Data.Maybe
+import           Control.Applicative
+import           Control.Monad
+import           Data.Char
+import           Data.List
+import           Data.List.Split     (splitOn)
+import           Data.Maybe
 
 data RegExp
   = Normal Char -- ^ A character that is not in "()*|."
@@ -16,9 +16,9 @@ data RegExp
 
 --
 parseRegExp :: String -> Maybe RegExp
-parseRegExp "a**" = Nothing
+parseRegExp "a**"   = Nothing
 parseRegExp "a(aa)" = Just $ Str [Normal 'a', Str [Normal 'a', Normal 'a']]
-parseRegExp s = parseCode expr $ reverse s
+parseRegExp s       = parseCode expr $ reverse s
 
 alpha = ['a' .. 'z'] ++ ['A' .. 'Z']
 
@@ -33,14 +33,14 @@ parseCode :: Parser RegExp -> String -> Maybe RegExp
 parseCode m s =
   case parse m s of
     [(res, [])] -> Just $ p res
-    _ -> Nothing -- error "Hugh?"
+    _           -> Nothing -- error "Hugh?"
   where
     p (Str [a]) = a
-    p (Str s) = Str $ (g <$> s) >>= id
-    p (Or a b) = Or (p a) $ p b
+    p (Str s)   = Str $ (g <$> s) >>= id
+    p (Or a b)  = Or (p a) $ p b
     p otherCode = otherCode
     g (Str s) = s >>= g
-    g others = [others]
+    g others  = [others]
 
 --
 instance Functor Parser where
@@ -76,7 +76,7 @@ item :: Parser Char
 item =
   Parser $ \s ->
     case s of
-      [] -> []
+      []    -> []
       (h:t) -> [(h, t)]
 
 --
@@ -157,3 +157,6 @@ expr = chainl1 term or'
 term = chainl1 factor mulit
 
 factor = zeroOrMore <|> any' <|> normal <|> parens expr
+
+
+main = print $ parseRegExp "a|b*"
