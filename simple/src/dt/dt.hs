@@ -48,4 +48,4 @@ vecIndex :: ((a :< b) ~ True) => SNat a -> Vec x b -> x
 vecIndex SZero (VCons x _)      = x
 vecIndex (SSucc n) (VCons _ xs) = vecIndex n xs
 
-main = print $ vecIndex ( SSucc SZero) vecTwo
+main = print $ vecIndex ( SSucc SZero) vecOne

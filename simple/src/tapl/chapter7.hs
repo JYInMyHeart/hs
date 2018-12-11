@@ -10,8 +10,6 @@ isval (TmAbs _ _) = True
 isval      _      = False
 
 
-
-
 index2name ctx x = fst (ctx !! x)
 
 pickfreshname ctx t = (t : ctx,t)
