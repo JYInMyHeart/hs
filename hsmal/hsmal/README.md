@@ -1,2 +1,2 @@
 # hsmal
-`integesting`
+`interesting`
