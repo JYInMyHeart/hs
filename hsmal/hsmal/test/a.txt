@@ -1,0 +1,1 @@
+(lambda x:Bool.if x then 0 else (succ 0)) true
