@@ -15,7 +15,7 @@ untypedDef :: P.LanguageDef st
 untypedDef =
   P.LanguageDef { P.commentStart    = ""
                 , P.commentEnd      = ""
-                , P.commentLine     = ""
+                , P.commentLine     = "--"
                 , P.nestedComments  = True
                 , P.identStart      = letter
                 , P.identLetter     = alphaNum
