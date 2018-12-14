@@ -67,6 +67,23 @@ eval2 a =
         TmZero -> TmZero
     _ -> error "s"
 
+eval3 :: Term a -> Term a
+eval3 a =
+  case a of
+    TmZero -> TmZero
+    TmTrue -> TmTrue
+    TmFalse -> TmFalse
+    TmIf t1 t2 t3 ->
+      case (eval3 t1) of
+        TmTrue -> eval3 t2
+        TmFalse -> eval3 t3
+    TmSucc a -> TmSucc (eval3 a)
+    TmPred a ->
+      case a of
+        TmSucc b -> b
+        TmZero -> TmZero
+    _ -> error "s"
+
 data Nat
   = Z
   | S Nat
@@ -82,11 +99,8 @@ snd' (a, b) = b
 
 zz = pair TmZero TmZero
 
-
-
 -- memorize :: (a -> b) -> [(a,b)] -> (a -> b)
-memorize f x xs = f x ((x,f x) : xs)  
-t a = a
-t' a = memorize t a []
--- main = print $ eval2 (TmIf TmTrue (TmPred (TmSucc TmZero)) TmZero)
-main = print $ t 1
+-- memorize f x xs = f x ((x,f x) : xs)  
+-- t a = a
+-- t' a = memorize t a []
+main = print $ eval3 (TmIf TmTrue (TmPred (TmSucc TmZero)) TmZero)
