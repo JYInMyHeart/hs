@@ -49,16 +49,17 @@ typeOf ctx (TermApp t1 t2)     =
               then Right tyT12 
               else Left TTypeMismatch
             _ -> Left ArrowParamTypeMismatch
+        Right ttt -> Right TypeT
         _ -> Left AppArrowTypeExpected
 typeOf ctx TermZero                 = Right TypeNat
 typeOf ctx (TermSucc t1)
-  | typeOf ctx t1 == Right TypeNat  = Right TypeNat
+  | eitherTypeEquals (typeOf ctx t1) ( Right TypeNat)  = Right TypeNat
   | otherwise                   = Left SuccArgNotNat
 typeOf ctx (TermPred t1)
-  | typeOf ctx t1 == Right TypeNat  = Right TypeNat
+  |  eitherTypeEquals (typeOf ctx t1) ( Right TypeNat)  = Right TypeNat
   | otherwise                   = Left PredArgNotNat
 typeOf ctx (TermIsZero t1)
-  | typeOf ctx t1 == Right TypeNat  = Right TypeBool
+  |  eitherTypeEquals (typeOf ctx t1) ( Right TypeNat)  = Right TypeBool
   | otherwise                   = Left IsZeroArgNotNat
 
 
@@ -71,4 +72,9 @@ typeEquals t1 t2 = case t2 of
   (TypeArrow t11 t12)-> case t1 of
     (TypeArrow t21 t22) -> typeEquals t11 t21 && typeEquals t12 t22
     _ -> False
-
+eitherTypeEquals :: Either TypeError Type -> Either TypeError Type -> Bool
+eitherTypeEquals t1 t2 = case t1 of
+  Right t11 -> case t2 of
+    Right t22 -> typeEquals t11 t22 
+    Left _ -> False
+  Left _ -> False
