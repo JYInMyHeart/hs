@@ -13,6 +13,7 @@ data TypeError = IfGuardNotBool
                | PredArgNotNat
                | IsZeroArgNotNat
                | ArrowParamTypeMismatch
+               | TTypeMismatch
                | AppArrowTypeExpected
                | VarTypeErrorWat
                deriving (Eq, Show)
@@ -42,9 +43,12 @@ typeOf ctx (TermApp t1 t2)     =
       tyT2 = typeOf ctx t2
   in  case tyT1 of
         Right (TypeArrow tyT11 tyT12) -> 
-          if tyT2 == Right tyT11
-             then Right tyT12
-             else Left ArrowParamTypeMismatch
+          case tyT2 of
+            (Right tyT2') -> 
+              if (typeEquals tyT2' tyT11 || typeEquals  tyT11 tyT2') 
+              then Right tyT12 
+              else Left TTypeMismatch
+            _ -> Left ArrowParamTypeMismatch
         _ -> Left AppArrowTypeExpected
 typeOf ctx TermZero                 = Right TypeNat
 typeOf ctx (TermSucc t1)
@@ -56,3 +60,15 @@ typeOf ctx (TermPred t1)
 typeOf ctx (TermIsZero t1)
   | typeOf ctx t1 == Right TypeNat  = Right TypeBool
   | otherwise                   = Left IsZeroArgNotNat
+
+
+typeEquals :: Type -> Type -> Bool
+typeEquals t1 t2 = case t2 of
+  TypeT -> t1 == TypeT
+  TypeBool -> t1 == TypeT || t1 == TypeBool
+  TypeNat -> t1 == TypeT || t1 == TypeNat
+  TypeUnit -> t1 == TypeT || t1 == TypeUnit
+  (TypeArrow t11 t12)-> case t1 of
+    (TypeArrow t21 t22) -> typeEquals t11 t21 && typeEquals t12 t22
+    _ -> False
+

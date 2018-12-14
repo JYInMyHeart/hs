@@ -21,8 +21,8 @@ untypedDef =
                 , P.identLetter     = alphaNum
                 , P.opStart         = letter
                 , P.opLetter        = alphaNum
-                , P.reservedOpNames = [ "lambda","if","then","else","true","false","Bool","succ","pred","iszero" ,"Nat","Unit","unit"]
-                , P.reservedNames   = ["lambda","if","then","else","true","false","Bool","succ","pred","iszero","Nat","Unit","unit"]
+                , P.reservedOpNames = [ "\\","if","then","else","true","false","Bool","succ","pred","iszero" ,"Nat","Unit","unit","_"]
+                , P.reservedNames   = ["\\","if","then","else","true","false","Bool","succ","pred","iszero","Nat","Unit","unit","_"]
                 , P.caseSensitive  = True
                 }
 
@@ -49,6 +49,18 @@ getVarIndex var ctx =
     Just i  -> return i
     Nothing -> error "Unbound variable name"
 
+
+parseSelecom :: Parser Term
+parseSelecom = 
+  do reserved ";"
+     parseTerm
+
+parseList :: Parser [Term]
+parseList = do
+  parseTerm  
+  many parseSelecom
+
+
 parseVar :: Parser Term
 parseVar =
   do var <- identifier
@@ -56,17 +68,25 @@ parseVar =
      idx <- getVarIndex var ctx
      return $ TermVar idx (length ctx)
 
+
 parseAbs :: Parser Term
 parseAbs =
-  do reservedOp "lambda"
-     var   <- identifier
-     tyVar <- parseTypeAnnotation
-     dot
-     ctx   <- getState
-     setState $ addBinding (var, VarBinding tyVar) ctx
-     term  <- parseTerm
-     setState ctx
-     return $ TermAbs var tyVar term
+ try(do reservedOp "\\"
+        var   <- identifier
+        tyVar <- parseTypeAnnotation
+        dot
+        ctx   <- getState
+        setState $ addBinding (var, VarBinding tyVar) ctx
+        term  <- parseTerm
+        setState ctx
+        return $ TermAbs var tyVar term) <|>
+     do  reservedOp "\\"
+         reserved "_"
+         tyVar <- parseTypeAnnotation
+         dot
+         term  <- parseTerm
+         return $ TermAbs "_" tyVar term
+
 
 
 parseUnit :: Parser Term
@@ -136,7 +156,7 @@ parseTypeArrow =
      return $ TypeArrow tyT1 tyT2
 
 parseGType :: Parser Type
-parseGType = reserved "A" >> return TypeT
+parseGType = oneOf ['A'..'Z'] >> return TypeT
 
 parseTypes :: Parser Type
 parseTypes =

@@ -32,7 +32,7 @@ showTerm ctx t =
         Nothing -> ""
     TermAbs x tyX t1 ->
       let (x', ctx') = freshVarName x ctx
-      in  "(lambda " ++ x' ++ ":" ++ show tyX ++ "." ++ showTerm ctx' t1 ++ ")"
+      in  "(λ" ++ x' ++ ":" ++ show tyX ++ "." ++ showTerm ctx' t1 ++ ")"
     TermApp t1 t2    ->
       "(" ++ showTerm ctx t1 ++ " " ++ showTerm ctx t2 ++ ")"
     t -> show t
