@@ -12,49 +12,46 @@ import qualified Text.Parsec.Token as P
 type Parser a = ParsecT String Context Identity a
 
 untypedDef :: P.LanguageDef st
-untypedDef =
-  P.LanguageDef
-  { P.commentStart = ""
-  , P.commentEnd = ""
-  , P.commentLine = "--"
-  , P.nestedComments = True
-  , P.identStart = letter
-  , P.identLetter = alphaNum
-  , P.opStart = letter
-  , P.opLetter = alphaNum
-  , P.reservedOpNames =
-      [ "\\"
-      , "if"
-      , "then"
-      , "else"
-      , "true"
-      , "false"
-      , "Bool"
-      , "succ"
-      , "pred"
-      , "iszero"
-      , "Nat"
-      , "Unit"
-      , "unit"
-      , "_"
-      ]
-  , P.reservedNames =
-      [ "\\"
-      , "if"
-      , "then"
-      , "else"
-      , "true"
-      , "false"
-      , "Bool"
-      , "succ"
-      , "pred"
-      , "iszero"
-      , "Nat"
-      , "Unit"
-      , "unit"
-      , "_"
-      ]
-  , P.caseSensitive = True
+untypedDef = P.LanguageDef
+  { P.commentStart    = ""
+  , P.commentEnd      = ""
+  , P.commentLine     = "--"
+  , P.nestedComments  = True
+  , P.identStart      = letter
+  , P.identLetter     = alphaNum
+  , P.opStart         = letter
+  , P.opLetter        = alphaNum
+  , P.reservedOpNames = [ "\\"
+                        , "if"
+                        , "then"
+                        , "else"
+                        , "true"
+                        , "false"
+                        , "Bool"
+                        , "succ"
+                        , "pred"
+                        , "iszero"
+                        , "Nat"
+                        , "Unit"
+                        , "unit"
+                        , "_"
+                        ]
+  , P.reservedNames   = [ "\\"
+                        , "if"
+                        , "then"
+                        , "else"
+                        , "true"
+                        , "false"
+                        , "Bool"
+                        , "succ"
+                        , "pred"
+                        , "iszero"
+                        , "Nat"
+                        , "Unit"
+                        , "unit"
+                        , "_"
+                        ]
+  , P.caseSensitive   = True
   }
 
 lexer :: P.GenTokenParser String u Identity
@@ -79,10 +76,9 @@ reservedOp :: String -> ParsecT String u Identity ()
 reservedOp = P.reservedOp lexer
 
 getVarIndex :: (Monad m, Eq a) => a -> [(a, b)] -> m Int
-getVarIndex var ctx =
-  case findIndex ((== var) . fst) ctx of
-    Just i -> return i
-    Nothing -> error "Unbound variable name"
+getVarIndex var ctx = case findIndex ((== var) . fst) ctx of
+  Just i  -> return i
+  Nothing -> error "Unbound variable name"
 
 parseVar :: Parser Term
 parseVar = do
@@ -94,21 +90,24 @@ parseVar = do
 parseAbs :: Parser Term
 parseAbs =
   try
-    (do reservedOp "\\"
-        var <- identifier
+      ( do
+        reservedOp "\\"
+        var   <- identifier
         tyVar <- parseTypeAnnotation
         dot
         ctx <- getState
         setState $ addBinding (var, VarBinding tyVar) ctx
         term <- parseTerm
         setState ctx
-        return $ TermAbs var tyVar term) <|> do
-    reservedOp "\\"
-    reserved "_"
-    tyVar <- parseTypeAnnotation
-    dot
-    term <- parseTerm
-    return $ TermAbs "_" tyVar term
+        return $ TermAbs var tyVar term
+      )
+    <|> do
+          reservedOp "\\"
+          reserved "_"
+          tyVar <- parseTypeAnnotation
+          dot
+          term <- parseTerm
+          return $ TermAbs "_" tyVar term
 
 parseUnit :: Parser Term
 parseUnit = reserved "unit" >> return TermUnit
@@ -180,7 +179,8 @@ parseGType :: Parser Type
 parseGType = oneOf ['A' .. 'Z'] >> return TypeT
 
 parseTypes :: Parser Type
-parseTypes = try parseTypeBool <|> parseTypeNat <|> parseTypeUnit <|> parseGType
+parseTypes =
+  try parseTypeBool <|> parseTypeNat <|> parseTypeUnit <|> parseGType
 
 parseType :: Parser Type
 parseType = try parseTypeArrow <|> parseTypes <|> parens parseType
@@ -192,7 +192,7 @@ parseTypeAnnotation = do
 
 parseList :: Parser Term
 parseList = do
-  t <- parseTerm
+  t  <- parseTerm
   ts <- many parseSeTerm
   return $ TermList (t : ts)
 
@@ -202,14 +202,19 @@ parseSeTerm = do
   parseTerm
 
 parseTerm :: Parser Term
-parseTerm =
-  chainl1
-    (parseZero <|> parseSucc <|> parsePred <|> parseIsZero <|> parseTrue <|>
-     parseFalse <|>
-     parseUnit <|>
-     parseIf <|>
-     parseAbs <|>
-     parseVar <|>
+parseTerm = chainl1
+  (   parseZero
+  <|> parseSucc
+  <|> parsePred
+  <|> parseIsZero
+  <|> parseTrue
+  <|> parseFalse
+  <|> parseUnit
+  <|> parseIf
+  <|> parseAbs
+  <|> parseVar
+  <|>
     --  parseList <|>
-     parens parseTerm)
-    (return TermApp)
+      parens parseTerm
+  )
+  (return TermApp)
