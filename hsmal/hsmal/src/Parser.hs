@@ -35,6 +35,7 @@ untypedDef = P.LanguageDef
                         , "Unit"
                         , "unit"
                         , "_"
+                        , "as"
                         ]
   , P.reservedNames   = [ "\\"
                         , "if"
@@ -50,6 +51,7 @@ untypedDef = P.LanguageDef
                         , "Unit"
                         , "unit"
                         , "_"
+                        , "as"
                         ]
   , P.caseSensitive   = True
   }
@@ -79,6 +81,17 @@ getVarIndex :: (Monad m, Eq a) => a -> [(a, b)] -> m Int
 getVarIndex var ctx = case findIndex ((== var) . fst) ctx of
   Just i  -> return i
   Nothing -> error "Unbound variable name"
+
+parseAs :: Parser Term
+parseAs = do
+  as <- identifier
+  many space
+  reserved "as"
+  many space
+  ty  <- parseType
+  ctx <- getState
+  setState $ addBinding (as, VarBinding ty) ctx
+  return $ TermAs as ty
 
 parseVar :: Parser Term
 parseVar = do
@@ -180,7 +193,20 @@ parseGType = oneOf ['A' .. 'Z'] >> return TypeT
 
 parseTypes :: Parser Type
 parseTypes =
-  try parseTypeBool <|> parseTypeNat <|> parseTypeUnit <|> parseGType
+  try parseTypeBool
+    <|> parseTypeNat
+    <|> parseTypeUnit
+    <|> parseGType
+    <|> parseAsType
+
+parseAsType :: Parser Type
+parseAsType = do
+  var <- identifier
+  ctx <- getState
+  case getBinding var ctx of
+    Just (VarBinding a) -> return a
+    Nothing             -> error "undefined as type"
+
 
 parseType :: Parser Type
 parseType = try parseTypeArrow <|> parseTypes <|> parens parseType
@@ -212,6 +238,7 @@ parseTerm = chainl1
   <|> parseUnit
   <|> parseIf
   <|> parseAbs
+  <|> parseAs
   <|> parseVar
   <|>
     --  parseList <|>

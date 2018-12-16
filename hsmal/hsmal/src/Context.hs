@@ -21,8 +21,8 @@ instance Show Type where
     concatMap
       (\x ->
          case x of
-           (Right ty) -> show ty
-           (Left err) -> show err)
+           (Right ty) -> show ty ++ "; "
+           (Left err) -> show err  ++ "; ")
       t1
   show (TypeArrow tyT1 tyT2) = show tyT1 ++ "->" ++ show tyT2
 

@@ -25,5 +25,5 @@ main = do
           ++ (show parseTree)
           ++ "\n=> "
           ++ (showTerm ctx . eval) expr
-      Left err -> putStrLn $ "Type Error: " ++ (show err)
-    Left err -> putStrLn $ "Parsing Error: " ++ (show err)
+      Left err -> putStrLn $ "Type Error: " ++ show err
+    Left err -> putStrLn $ "Parsing Error: " ++ show err

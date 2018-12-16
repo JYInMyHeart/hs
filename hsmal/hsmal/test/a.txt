@@ -1,1 +1,1 @@
-\ x:A.succ x \ x:A.succ x;\ x:A.succ x
+u as  Nat->Nat;\ x:u.unit

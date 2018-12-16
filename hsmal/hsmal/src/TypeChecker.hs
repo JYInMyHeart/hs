@@ -1,9 +1,9 @@
 module TypeChecker where
 
-import Context
-import Evaluator
-import Parser
-import Syntax
+import           Context
+import           Evaluator
+import           Parser
+import           Syntax
 
 typeOf :: Context -> Term -> Either TypeError Type
 typeOf _   TermTrue          = Right TypeBool
@@ -44,6 +44,7 @@ typeOf ctx (TermIsZero t1)
   | eitherTypeEquals (typeOf ctx t1) (Right TypeNat) = Right TypeBool
   | otherwise = Left IsZeroArgNotNat
 typeOf ctx (TermList t1) = Right $ TypeList (fmap (typeOf ctx) t1)
+typeOf ctx (TermAs s t ) = Right $ t
 
 typeEquals :: Type -> Type -> Bool
 typeEquals t1 t2 = case t2 of
