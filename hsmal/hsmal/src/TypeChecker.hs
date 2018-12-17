@@ -6,14 +6,15 @@ import           Parser
 import           Syntax
 
 typeOf :: Context -> Term -> Either TypeError Type
-typeOf _   TermTrue          = Right TypeBool
-typeOf _   TermFalse         = Right TypeBool
-typeOf _   TermUnit          = Right TypeUnit
-typeOf ctx (TermIf t1 t2 t3) = if typeOf ctx t1 == Right TypeBool
-  then if typeOf ctx t2 == typeOf ctx t3
-    then typeOf ctx t2
-    else Left IfArmsTypeMismatch
-  else Left IfGuardNotBool
+typeOf _ TermTrue  = Right TypeBool
+typeOf _ TermFalse = Right TypeBool
+typeOf _ TermUnit  = Right TypeUnit
+typeOf ctx (TermIf t1 t2 t3) =
+  if eitherTypeEquals (typeOf ctx t1) (Right TypeBool)
+    then if typeOf ctx t2 == typeOf ctx t3
+      then typeOf ctx t2
+      else Left IfArmsTypeMismatch
+    else Left IfGuardNotBool
 typeOf ctx (TermVar x _) = case getType x ctx of
   Just (VarBinding tyT) -> Right tyT
   _                     -> Left VarTypeErrorWat

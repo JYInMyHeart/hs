@@ -262,10 +262,10 @@ parseTerm = chainl1
   <|> parseTrue
   <|> parseFalse
   <|> parseUnit
-  <|> parseIf
-  <|> parseAbs
+  <|> try parseIf
+  <|> try parseAbs
   <|> try parseAs
-  <|> parseVar
+  <|> try parseVar
   <|>
     --  parseList <|>
       parens parseTerm
