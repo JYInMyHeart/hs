@@ -36,6 +36,11 @@ untypedDef = P.LanguageDef
                         , "unit"
                         , "_"
                         , "as"
+                        , ";"
+                        , "]"
+                        , "["
+                        , "\""
+                        , "String"
                         ]
   , P.reservedNames   = [ "\\"
                         , "if"
@@ -52,6 +57,11 @@ untypedDef = P.LanguageDef
                         , "unit"
                         , "_"
                         , "as"
+                        , ";"
+                        , "["
+                        , "]"
+                        , "\""
+                        , "String"
                         ]
   , P.caseSensitive   = True
   }
@@ -88,7 +98,8 @@ parseAs = do
   many space
   reserved "as"
   many space
-  ty  <- parseType
+  ty <- parseType
+  many space
   ctx <- getState
   setState $ addBinding (as, VarBinding ty) ctx
   return $ TermAs as ty
@@ -103,7 +114,7 @@ parseVar = do
 parseAbs :: Parser Term
 parseAbs =
   try
-      ( do
+      (do
         reservedOp "\\"
         var   <- identifier
         tyVar <- parseTypeAnnotation
@@ -130,6 +141,16 @@ parseTrue = reserved "true" >> return TermTrue
 
 parseFalse :: Parser Term
 parseFalse = reserved "false" >> return TermFalse
+
+parseStr :: Parser Term
+parseStr = do
+  many space
+  string "\""
+  s <- many (oneOf ['a' .. 'z'])
+  string "\""
+  many space
+  return $ TermString s
+ch = P.charLiteral lexer
 
 parseIf :: Parser Term
 parseIf = do
@@ -179,6 +200,9 @@ parseTypeUnit = reserved "Unit" >> return TypeUnit
 parseTypeNat :: Parser Type
 parseTypeNat = reserved "Nat" >> return TypeNat
 
+parseStrType :: Parser Type
+parseStrType = reserved "String" >> return TypeString
+
 parseTypeArrow :: Parser Type
 parseTypeArrow = do
   tyT1 <- parseTypes
@@ -196,6 +220,7 @@ parseTypes =
   try parseTypeBool
     <|> parseTypeNat
     <|> parseTypeUnit
+    <|> parseStrType
     <|> parseGType
     <|> parseAsType
 
@@ -232,16 +257,18 @@ parseTerm = chainl1
   (   parseZero
   <|> parseSucc
   <|> parsePred
+  <|> parseStr
   <|> parseIsZero
   <|> parseTrue
   <|> parseFalse
   <|> parseUnit
   <|> parseIf
   <|> parseAbs
-  <|> parseAs
+  <|> try parseAs
   <|> parseVar
   <|>
     --  parseList <|>
       parens parseTerm
   )
   (return TermApp)
+

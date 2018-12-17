@@ -1,6 +1,7 @@
 module Syntax where
 
 import Context
+import Data.Maybe
 
 data Term
   = TermVar Int
@@ -22,6 +23,7 @@ data Term
   | TermUnit
   | TermList [Term]
   | TermAs String Type
+  | TermString String
   deriving (Eq, Show)
 
 showTerm :: Context -> Term -> String
@@ -42,11 +44,9 @@ showTerm ctx t = case t of
       ++ " else "
       ++ showTerm ctx t3
       ++ ")"
-  TermVar n _ -> case getName n ctx of
-    Just x  -> x
-    Nothing -> ""
+  TermVar n _ -> fromMaybe "" (getName n ctx)
   TermAbs x tyX t1 ->
     let (x', ctx') = freshVarName x ctx
-    in  "(λ" ++ x' ++ ":" ++ show tyX ++ "." ++ showTerm ctx' t1 ++ ")"
+    in  "(" ++ x' ++ ":" ++ show tyX ++ "." ++ showTerm ctx' t1 ++ ")"
   TermApp t1 t2 -> "(" ++ showTerm ctx t1 ++ " " ++ showTerm ctx t2 ++ ")"
   t             -> show t

@@ -43,8 +43,9 @@ typeOf ctx (TermPred t1)
 typeOf ctx (TermIsZero t1)
   | eitherTypeEquals (typeOf ctx t1) (Right TypeNat) = Right TypeBool
   | otherwise = Left IsZeroArgNotNat
-typeOf ctx (TermList t1) = Right $ TypeList (fmap (typeOf ctx) t1)
-typeOf ctx (TermAs s t ) = Right $ t
+typeOf _   (TermString t ) = Right TypeString
+typeOf ctx (TermList   t1) = Right $ TypeList (fmap (typeOf ctx) t1)
+typeOf ctx (TermAs s t   ) = Right t
 
 typeEquals :: Type -> Type -> Bool
 typeEquals t1 t2 = case t2 of
@@ -52,6 +53,7 @@ typeEquals t1 t2 = case t2 of
   TypeBool            -> t1 == TypeT || t1 == TypeBool
   TypeNat             -> t1 == TypeT || t1 == TypeNat
   TypeUnit            -> t1 == TypeT || t1 == TypeUnit
+  TypeString          -> t1 == TypeT || t1 == TypeString
   (TypeArrow t11 t12) -> case t1 of
     (TypeArrow t21 t22) ->
       (typeEquals t11 t21 && typeEquals t12 t22)

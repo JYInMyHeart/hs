@@ -12,7 +12,7 @@ main :: IO ()
 main = do
   sourceFile <- getLine
   let ctx = mkContext
-  parseTree <- fmap (runParser parseList ctx "untyped")
+  parseTree <- fmap (runParser parseList ctx "simpletyped")
                     (readFile $ "../test/" ++ sourceFile ++ ".txt")
             -- parseTree <- fmap (runParser parseTerm ctx "untyped") getLine
   case parseTree of
@@ -20,9 +20,9 @@ main = do
       Right ex ->
         putStrLn
           $  "TYPE:"
-          ++ (show ex)
+          ++ show ex
           ++ "\nAST: "
-          ++ (show parseTree)
+          ++ show parseTree
           ++ "\n=> "
           ++ (showTerm ctx . eval) expr
       Left err -> putStrLn $ "Type Error: " ++ show err

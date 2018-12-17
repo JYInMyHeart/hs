@@ -1,1 +1,13 @@
-u as  Nat->Nat;\ x:u.unit
+"asf";
+(\ x:A.unit)"asff";
+(\ x:A.unit)0;
+(\ _:A.unit)0;
+(\ _:A->A.unit)(\ _:A.unit);
+if true then 0 else succ 0;
+(\ y:A.if y then 0 else succ 0) false;
+u as Unit->Unit;
+\ _:u.true;
+(\ _:T->T.unit)(\ _:A."sb");
+\ _:String->S.unit
+
+
