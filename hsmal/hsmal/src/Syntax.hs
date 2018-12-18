@@ -24,18 +24,20 @@ data Term
   | TermList [Term]
   | TermAs String Type
   | TermString String
+  | TermLet String Term
   deriving (Eq, Show)
 
 showTerm :: Context -> Term -> String
 showTerm ctx t = case t of
-  TermTrue     -> "true"
-  TermFalse    -> "false"
-  TermZero     -> "0"
-  TermUnit     -> "unit"
-  TermSucc t1  -> "(succ " ++ showTerm ctx t1 ++ ")"
-  TermPred t1  -> "(pred " ++ showTerm ctx t1 ++ ")"
-  TermList t1  -> concatMap ((++ "; ") . showTerm ctx) t1
-  TermAs t1 t2 -> show t1 ++ " as " ++ show t2
+  TermTrue      -> "true"
+  TermFalse     -> "false"
+  TermZero      -> "0"
+  TermUnit      -> "unit"
+  TermSucc t1   -> "(succ " ++ showTerm ctx t1 ++ ")"
+  TermPred t1   -> "(pred " ++ showTerm ctx t1 ++ ")"
+  TermList t1   -> concatMap ((++ "\n") . showTerm ctx) t1
+  TermAs  t1 t2 -> show t1 ++ " as " ++ show t2
+  TermLet s  t  -> show s ++ " = " ++ showTerm ctx t
   TermIf t1 t2 t3 ->
     "(if "
       ++ showTerm ctx t1
@@ -50,3 +52,41 @@ showTerm ctx t = case t of
     in  "(" ++ x' ++ ":" ++ show tyX ++ "." ++ showTerm ctx' t1 ++ ")"
   TermApp t1 t2 -> "(" ++ showTerm ctx t1 ++ " " ++ showTerm ctx t2 ++ ")"
   t             -> show t
+
+
+
+type Context = [(String, Binding)]
+
+data Binding
+  = NameBinding
+  | VarBinding Type
+  | ValBinding Term
+  deriving (Eq, Show)
+
+mkContext :: Context
+mkContext = []
+
+addBinding :: (String, Binding) -> Context -> Context
+addBinding = (:)
+
+getBinding :: String -> Context -> Maybe Binding
+getBinding = lookup
+
+getIndex :: Int -> Context -> Maybe (String, Binding)
+getIndex n ctx | length ctx > n = Just $ ctx !! n
+               | otherwise      = Nothing
+
+getName :: Int -> Context -> Maybe String
+getName n ctx = fmap fst $ getIndex n ctx
+
+getType :: Int -> Context -> Maybe Binding
+getType n ctx = fmap snd $ getIndex n ctx
+
+freshVarName :: String -> Context -> (String, Context)
+freshVarName x ctx =
+  let x' = mkFreshVarName x ctx in (x', addBinding (x', NameBinding) ctx)
+
+mkFreshVarName :: String -> Context -> String
+mkFreshVarName x [] = x
+mkFreshVarName x ctx@(b : bs) | x == fst b = mkFreshVarName (x ++ "'") ctx
+                              | otherwise  = mkFreshVarName x bs

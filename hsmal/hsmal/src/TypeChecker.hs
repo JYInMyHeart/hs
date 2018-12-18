@@ -46,7 +46,9 @@ typeOf ctx (TermIsZero t1)
   | otherwise = Left IsZeroArgNotNat
 typeOf _   (TermString t ) = Right TypeString
 typeOf ctx (TermList   t1) = Right $ TypeList (fmap (typeOf ctx) t1)
-typeOf ctx (TermAs s t   ) = Right t
+typeOf ctx (TermAs  s t  ) = Right t
+typeOf ctx (TermLet s t  ) = typeOf ctx t
+
 
 typeEquals :: Type -> Type -> Bool
 typeEquals t1 t2 = case t2 of

@@ -1,14 +1,27 @@
-"asf";
+ "asf ~!@#$%^&*()_+/*<>"; 
+--app String
 (\ x:A.unit)"asff";
+-- app Nat
 (\ x:A.unit)0;
+-- _
 (\ _:A.unit)0;
+-- app fun
 (\ _:A->A.unit)(\ _:A.unit);
+--if
 if true then 0 else succ 0;
+--app if
 (\ y:A.if y then 0 else succ 0) false;
+--as
 u as Unit->Unit;
 \ _:u.true;
+--app fun
 (\ _:T->T.unit)(\ _:A."sb");
-\ _:String->S.unit
+--type String
+\ _:String->S.unit;
+--let
+let temp = (\ _:A.0);
+(\ _:A->A.unit) temp;
+temp 0
 
 
 

@@ -2,6 +2,7 @@ module Context where
 
 import Control.Monad
 
+
 data Type
   = TypeBool
   | TypeNat
@@ -23,8 +24,8 @@ instance Show Type where
     concatMap
       (\x ->
          case x of
-           (Right ty) -> show ty ++ "; "
-           (Left err) -> show err  ++ "; ")
+           (Right ty) -> show ty ++ ";\n "
+           (Left err) -> show err  ++ ";\n ")
       t1
   show (TypeArrow tyT1 tyT2) = show tyT1 ++ "->" ++ show tyT2
 
@@ -40,37 +41,3 @@ data TypeError
   | VarTypeErrorWat
   deriving (Eq, Show)
 
-type Context = [(String, Binding)]
-
-data Binding
-  = NameBinding
-  | VarBinding Type
-  deriving (Eq, Show)
-
-mkContext :: Context
-mkContext = []
-
-addBinding :: (String, Binding) -> Context -> Context
-addBinding = (:)
-
-getBinding :: String -> Context -> Maybe Binding
-getBinding = lookup
-
-getIndex :: Int -> Context -> Maybe (String, Binding)
-getIndex n ctx | length ctx > n = Just $ ctx !! n
-               | otherwise      = Nothing
-
-getName :: Int -> Context -> Maybe String
-getName n ctx = fmap fst $ getIndex n ctx
-
-getType :: Int -> Context -> Maybe Binding
-getType n ctx = fmap snd $ getIndex n ctx
-
-freshVarName :: String -> Context -> (String, Context)
-freshVarName x ctx =
-  let x' = mkFreshVarName x ctx in (x', addBinding (x', NameBinding) ctx)
-
-mkFreshVarName :: String -> Context -> String
-mkFreshVarName x [] = x
-mkFreshVarName x ctx@(b : bs) | x == fst b = mkFreshVarName (x ++ "'") ctx
-                              | otherwise  = mkFreshVarName x bs

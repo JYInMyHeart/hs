@@ -13,8 +13,8 @@ type Parser a = ParsecT String Context Identity a
 
 untypedDef :: P.LanguageDef st
 untypedDef = P.LanguageDef
-  { P.commentStart    = ""
-  , P.commentEnd      = ""
+  { P.commentStart    = "/*"
+  , P.commentEnd      = "*/"
   , P.commentLine     = "--"
   , P.nestedComments  = True
   , P.identStart      = letter
@@ -41,6 +41,8 @@ untypedDef = P.LanguageDef
                         , "["
                         , "\""
                         , "String"
+                        , "let"
+                        , "in"
                         ]
   , P.reservedNames   = [ "\\"
                         , "if"
@@ -62,6 +64,8 @@ untypedDef = P.LanguageDef
                         , "]"
                         , "\""
                         , "String"
+                        , "let"
+                        , "in"
                         ]
   , P.caseSensitive   = True
   }
@@ -92,6 +96,18 @@ getVarIndex var ctx = case findIndex ((== var) . fst) ctx of
   Just i  -> return i
   Nothing -> error "Unbound variable name"
 
+parseLet :: Parser Term
+parseLet = do
+  reserved "let"
+  var <- identifier
+  reserved "="
+  val <- parseTerm
+  ctx <- getState
+  setState $ addBinding (var, ValBinding val) ctx
+  return $ TermLet var val
+
+
+
 parseAs :: Parser Term
 parseAs = do
   as <- identifier
@@ -104,12 +120,21 @@ parseAs = do
   setState $ addBinding (as, VarBinding ty) ctx
   return $ TermAs as ty
 
+
+
 parseVar :: Parser Term
 parseVar = do
   var <- identifier
   ctx <- getState
-  idx <- getVarIndex var ctx
-  return $ TermVar idx (length ctx)
+  case getBinding var ctx of
+    Just (ValBinding a) -> return a
+    _                   -> do
+      idx <- getVarIndex var ctx
+      return $ TermVar idx (length ctx)
+    -- _ -> error "undefined let value"
+
+
+
 
 parseAbs :: Parser Term
 parseAbs =
@@ -146,7 +171,7 @@ parseStr :: Parser Term
 parseStr = do
   many space
   string "\""
-  s <- many (oneOf ['a' .. 'z'])
+  s <- many (oneOf $ ['a' .. 'z'] ++ " ~!@#$%^&*()_+></*.")
   string "\""
   many space
   return $ TermString s
@@ -230,7 +255,7 @@ parseAsType = do
   ctx <- getState
   case getBinding var ctx of
     Just (VarBinding a) -> return a
-    Nothing             -> error "undefined as type"
+    _                   -> error "undefined as type"
 
 
 parseType :: Parser Type
@@ -243,6 +268,7 @@ parseTypeAnnotation = do
 
 parseList :: Parser Term
 parseList = do
+  many space
   t  <- parseTerm
   ts <- many parseSeTerm
   return $ TermList (t : ts)
@@ -250,6 +276,7 @@ parseList = do
 parseSeTerm :: Parser Term
 parseSeTerm = do
   reserved ";"
+  many space
   parseTerm
 
 parseTerm :: Parser Term
@@ -264,11 +291,10 @@ parseTerm = chainl1
   <|> parseUnit
   <|> try parseIf
   <|> try parseAbs
+  <|> try parseLet
   <|> try parseAs
   <|> try parseVar
-  <|>
-    --  parseList <|>
-      parens parseTerm
+  <|> parens parseTerm
   )
   (return TermApp)
 

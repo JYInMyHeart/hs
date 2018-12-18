@@ -1,0 +1,3 @@
+   let temp = \ _:A.succ 0;
+   (\ _:A->A.unit) temp;
+   temp 0

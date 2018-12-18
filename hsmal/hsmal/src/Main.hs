@@ -19,11 +19,12 @@ main = do
     Right expr -> case typeOf ctx expr of
       Right ex ->
         putStrLn
-          $  "TYPE:"
+          $ "|---------------------------------TYPE------------------------------------| \n"
           ++ show ex
-          ++ "\nAST: "
+          ++ "\n|----------------------------------AST-----------------------------------|\n"
           ++ show parseTree
-          ++ "\n=> "
+          ++ "\n"
+          ++ "\n|----------------------------------VALUE----------------------------------|\n"
           ++ (showTerm ctx . eval) expr
       Left err -> putStrLn $ "Type Error: " ++ show err
     Left err -> putStrLn $ "Parsing Error: " ++ show err
