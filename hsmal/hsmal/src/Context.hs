@@ -1,6 +1,6 @@
 module Context where
 
-import Control.Monad
+import           Control.Monad
 
 
 data Type
@@ -12,6 +12,7 @@ data Type
   | TypeArrow Type
               Type
   | TypeList [Either TypeError Type]
+  | TypePair (Either TypeError Type) (Either TypeError Type)
   deriving (Eq)
 
 instance Show Type where
@@ -20,14 +21,16 @@ instance Show Type where
   show TypeUnit = "()"
   show TypeT = "T"
   show TypeString = "String"
+  show (TypePair t1 t2) = "(" ++ showEither t1 ++ "," ++ showEither t2 ++ ")"
   show (TypeList t1) =
     concatMap
-      (\x ->
-         case x of
-           (Right ty) -> show ty ++ ";\n "
-           (Left err) -> show err  ++ ";\n ")
+      showEither
       t1
   show (TypeArrow tyT1 tyT2) = show tyT1 ++ "->" ++ show tyT2
+
+showEither = \x -> case x of
+  (Right ty ) -> show ty ++ ";\n "
+  (Left  err) -> show err ++ ";\n "
 
 data TypeError
   = IfGuardNotBool

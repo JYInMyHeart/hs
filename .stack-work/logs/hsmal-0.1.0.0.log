@@ -1,0 +1,11 @@
+Configuring hsmal-0.1.0.0...
+Preprocessing library for hsmal-0.1.0.0..
+Building library for hsmal-0.1.0.0..
+[2 of 7] Compiling Paths_hsmal      ( .stack-work\dist\5c8418a7\build\autogen\Paths_hsmal.hs, .stack-work\dist\5c8418a7\build\Paths_hsmal.o ) [.stack-work\dist\5c8418a7\build\autogen\cabal_macros.h changed]
+Preprocessing executable 'hsmal-exe' for hsmal-0.1.0.0..
+Building executable 'hsmal-exe' for hsmal-0.1.0.0..
+[2 of 7] Compiling Paths_hsmal      ( .stack-work\dist\5c8418a7\build\hsmal-exe\autogen\Paths_hsmal.hs, .stack-work\dist\5c8418a7\build\hsmal-exe\hsmal-exe-tmp\Paths_hsmal.o ) [.stack-work\dist\5c8418a7\build\hsmal-exe\autogen\cabal_macros.h changed]
+Linking .stack-work\dist\5c8418a7\build\hsmal-exe\hsmal-exe.exe ...
+Installing library in E:\vscode\java\haskell\hs\.stack-work\install\402aa6ac\lib\x86_64-windows-ghc-8.2.2\hsmal-0.1.0.0-IbENOmlW6cdHuVIk6LGnpR
+Installing executable hsmal-exe in E:\vscode\java\haskell\hs\.stack-work\install\402aa6ac\bin
+Registering library for hsmal-0.1.0.0..

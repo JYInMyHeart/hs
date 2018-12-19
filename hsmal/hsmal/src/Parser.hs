@@ -2,13 +2,13 @@
 
 module Parser where
 
-import Context
-import Data.Functor.Identity
-import Data.List
-import Syntax
-import Text.Parsec
-import qualified Text.Parsec.Token as P
-import TypeChecker (typeOf)
+import           Context
+import           Data.Functor.Identity
+import           Data.List
+import           Syntax
+import           Text.Parsec
+import qualified Text.Parsec.Token             as P
+import           TypeChecker                    ( typeOf )
 
 type Parser a = ParsecT String Context Identity a
 
@@ -101,6 +101,33 @@ getVarIndex var ctx = case findIndex ((== var) . fst) ctx of
   Just i  -> return i
   Nothing -> error "Unbound variable name"
 
+
+parsePair :: Parser Term
+parsePair = do
+  reserved "("
+  t1 <- parseTerm
+  reserved ","
+  t2 <- parseTerm
+  reserved ")"
+  return $ TermPair t1 t2
+
+parseFst :: Parser Term
+parseFst = do
+  p <- parsePair
+  dot
+  reserved "1"
+  case p of
+    TermPair t1 t2 -> return t1
+    _              -> error "no fst"
+
+parseSnd :: Parser Term
+parseSnd = do
+  p <- parsePair
+  dot
+  reserved "2"
+  case p of
+    TermPair t1 t2 -> return t2
+    _              -> error "no snd"
 parseSet :: Parser Term
 parseSet = do
   reserved "set"
@@ -316,6 +343,9 @@ parseTerm = chainl1
   <|> try parseLet
   <|> try parseAs
   <|> try parseVar
+  <|> try parseFst
+  <|> try parseSnd
+  <|> try parsePair
   <|> parens parseTerm
   )
   (return TermApp)

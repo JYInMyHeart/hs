@@ -1,8 +1,8 @@
 module Evaluator where
 
-import Control.Monad
-import Syntax
-import Data.Maybe
+import           Control.Monad
+import           Syntax
+import           Data.Maybe
 
 -- Variable Shifting and Substitution
 --
@@ -55,13 +55,13 @@ eval1 (TermIf TermTrue  t2 _ ) = return t2
 eval1 (TermIf TermFalse _  t3) = return t3
 eval1 (TermIf t1        t2 t3) = fmap (\t1' -> TermIf t1' t2 t3) (eval1 t1)
 eval1 TermZero                 = Nothing
-eval1 (TermSucc   t                  ) = fmap TermSucc (eval1 t)
-eval1 (TermPred   TermZero           ) = return TermZero
-eval1 (TermPred   (TermSucc t)       ) = return t
-eval1 (TermPred   t                  ) = fmap TermPred (eval1 t)
-eval1 (TermIsZero TermZero           ) = return TermTrue
+eval1 (TermSucc t)             = fmap TermSucc (eval1 t)
+eval1 (TermPred TermZero)      = return TermZero
+eval1 (TermPred (TermSucc t))  = return t
+eval1 (TermPred t)             = fmap TermPred (eval1 t)
+eval1 (TermIsZero TermZero)    = return TermTrue
 eval1 (TermIsZero (TermSucc TermZero)) = return TermFalse
-eval1 (TermIsZero t                  ) = fmap TermIsZero (eval1 t)
+eval1 (TermIsZero t)           = fmap TermIsZero (eval1 t)
 eval1 _                        = Nothing
 
 eval :: Term -> Term
