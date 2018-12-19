@@ -24,7 +24,7 @@ data Term
   | TermList [Term]
   | TermAs String Type
   | TermString String
-  | TermLet String Term
+  | TermSet String Term
   deriving (Eq, Show)
 
 showTerm :: Context -> Term -> String
@@ -37,7 +37,7 @@ showTerm ctx t = case t of
   TermPred t1   -> "(pred " ++ showTerm ctx t1 ++ ")"
   TermList t1   -> concatMap ((++ "\n") . showTerm ctx) t1
   TermAs  t1 t2 -> show t1 ++ " as " ++ show t2
-  TermLet s  t  -> show s ++ " = " ++ showTerm ctx t
+  TermSet s  t  -> show s ++ " = " ++ showTerm ctx t
   TermIf t1 t2 t3 ->
     "(if "
       ++ showTerm ctx t1

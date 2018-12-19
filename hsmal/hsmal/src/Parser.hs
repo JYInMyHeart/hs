@@ -8,6 +8,7 @@ import Data.List
 import Syntax
 import Text.Parsec
 import qualified Text.Parsec.Token as P
+import TypeChecker (typeOf)
 
 type Parser a = ParsecT String Context Identity a
 
@@ -43,6 +44,8 @@ untypedDef = P.LanguageDef
                         , "String"
                         , "let"
                         , "in"
+                        , "set"
+                        , "="
                         ]
   , P.reservedNames   = [ "\\"
                         , "if"
@@ -66,6 +69,8 @@ untypedDef = P.LanguageDef
                         , "String"
                         , "let"
                         , "in"
+                        , "set"
+                        , "="
                         ]
   , P.caseSensitive   = True
   }
@@ -96,6 +101,16 @@ getVarIndex var ctx = case findIndex ((== var) . fst) ctx of
   Just i  -> return i
   Nothing -> error "Unbound variable name"
 
+parseSet :: Parser Term
+parseSet = do
+  reserved "set"
+  var <- identifier
+  reserved "="
+  val <- parseTerm
+  ctx <- getState
+  setState $ addBinding (var, ValBinding val) ctx
+  return $ TermSet var val
+
 parseLet :: Parser Term
 parseLet = do
   reserved "let"
@@ -103,9 +118,15 @@ parseLet = do
   reserved "="
   val <- parseTerm
   ctx <- getState
-  setState $ addBinding (var, ValBinding val) ctx
-  return $ TermLet var val
-
+  case typeOf ctx val of
+    Right t   -> setState $ addBinding (var, VarBinding t) ctx
+    Left  err -> error "can't get type"
+  reserved "in"
+  ctx  <- getState
+  stmt <- parseTerm
+  case typeOf ctx val of
+    Right t   -> return $ TermApp (TermAbs var t stmt) val
+    Left  err -> error "can't get type"
 
 
 parseAs :: Parser Term
@@ -291,10 +312,12 @@ parseTerm = chainl1
   <|> parseUnit
   <|> try parseIf
   <|> try parseAbs
+  <|> try parseSet
   <|> try parseLet
   <|> try parseAs
   <|> try parseVar
   <|> parens parseTerm
   )
   (return TermApp)
+
 

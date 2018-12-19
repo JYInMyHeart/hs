@@ -18,9 +18,12 @@ u as Unit->Unit;
 (\ _:T->T.unit)(\ _:A."sb");
 --type String
 \ _:String->S.unit;
---let
-let temp = (\ _:A.0);
+--set
+set temp = (\ _:A.0);
 (\ _:A->A.unit) temp;
+temp 0;
+--let
+let temp = (\ _:A.succ 0) in  (temp 0); 
 temp 0
 
 

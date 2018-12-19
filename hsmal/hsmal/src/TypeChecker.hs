@@ -2,7 +2,7 @@ module TypeChecker where
 
 import           Context
 import           Evaluator
-import           Parser
+-- import           Parser
 import           Syntax
 
 typeOf :: Context -> Term -> Either TypeError Type
@@ -47,7 +47,7 @@ typeOf ctx (TermIsZero t1)
 typeOf _   (TermString t ) = Right TypeString
 typeOf ctx (TermList   t1) = Right $ TypeList (fmap (typeOf ctx) t1)
 typeOf ctx (TermAs  s t  ) = Right t
-typeOf ctx (TermLet s t  ) = typeOf ctx t
+typeOf ctx (TermSet s t  ) = typeOf ctx t
 
 
 typeEquals :: Type -> Type -> Bool
