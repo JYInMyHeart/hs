@@ -26,6 +26,7 @@ data Term
   | TermString String
   | TermSet String Term
   | TermPair Term Term
+  | TermTuple [Term]
   deriving (Eq, Show)
 
 showTerm :: Context -> Term -> String
@@ -34,9 +35,10 @@ showTerm ctx t = case t of
   TermFalse      -> "false"
   TermZero       -> "0"
   TermUnit       -> "unit"
-  TermSucc t1    -> "(succ " ++ showTerm ctx t1 ++ ")"
-  TermPred t1    -> "(pred " ++ showTerm ctx t1 ++ ")"
-  TermList t1    -> concatMap ((++ "\n") . showTerm ctx) t1
+  TermSucc  t1   -> "(succ " ++ showTerm ctx t1 ++ ")"
+  TermPred  t1   -> "(pred " ++ showTerm ctx t1 ++ ")"
+  TermList  t1   -> concatMap ((++ "\n") . showTerm ctx) t1
+  TermTuple t1   -> concatMap ((++ "\n") . showTerm ctx) t1
   TermPair t1 t2 -> "(" ++ showTerm ctx t1 ++ "," ++ showTerm ctx t2 ++ ")"
   TermAs   t1 t2 -> show t1 ++ " as " ++ show t2
   TermSet  s  t  -> show s ++ " = " ++ showTerm ctx t

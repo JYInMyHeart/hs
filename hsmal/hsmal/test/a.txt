@@ -27,11 +27,10 @@ let temp = (\ _:A.succ 0) in  (temp 0);
 let temp = (\ _:A.succ 0) in  (if false then 0 else ( temp false));
 temp 0;
 --pair
-((0),(succ 0)).1;
-((0),(succ 0)).2;
-((\ _:A.unit),((\ _:A.unit) false)).1;
-((\ _:A.unit),((\ _:A.unit) false)).2
-
-
-
-
+[(0),(succ 0)].0;
+[(0),(succ 0)].1;
+[(\ _:A.unit),((\ _:A."sb") false)].1;
+[(\ _:A.unit),((\ _:A.unit) "sb")].0;
+--tuple
+[(\ _:A.unit),((\ _:A.unit) "sb"),(succ 0),"sss"].3;
+[(\ _:A.unit),((\ _:A.unit) "sb"),(succ 0),"sss"].2

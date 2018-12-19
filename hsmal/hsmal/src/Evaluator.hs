@@ -24,8 +24,9 @@ substTerm j s = walk 0
                        | otherwise  = TermVar x n
   walk c (TermAbs x tyT1 t1) = TermAbs x tyT1 (walk (c + 1) t1)
   walk c (TermApp t1 t2    ) = TermApp (walk c t1) (walk c t2)
-  walk c (TermSucc ts      ) = TermSucc (walk c ts)
-  walk c (TermPred tp      ) = TermPred (walk c tp)
+  walk c (TermSucc   ts    ) = TermSucc (walk c ts)
+  walk c (TermPred   tp    ) = TermPred (walk c tp)
+  walk c (TermString tt'   ) = TermString tt'
   walk _ t1 | t1 == TermTrue  = t1
             | t1 == TermFalse = t1
             | t1 == TermZero  = t1
@@ -38,12 +39,13 @@ substTopTerm s t = shiftTerm (-1) (substTerm 0 (shiftTerm 1 s) t)
 -- Evaluation
 --
 isValue :: Term -> Bool
-isValue TermAbs{} = True
-isValue TermFalse = True
-isValue TermTrue  = True
-isValue TermZero  = True
-isValue TermUnit  = True
-isValue _         = False
+isValue TermAbs{}      = True
+isValue TermFalse      = True
+isValue TermTrue       = True
+isValue TermZero       = True
+isValue TermUnit       = True
+isValue (TermString s) = True
+isValue _              = False
 
 eval1 :: Term -> Maybe Term
 eval1 (TermApp (TermAbs _ _ t12) v2) | isValue v2 = return $ substTopTerm v2 t12

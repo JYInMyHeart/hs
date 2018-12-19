@@ -46,6 +46,7 @@ typeOf ctx (TermIsZero t1)
   | otherwise = Left IsZeroArgNotNat
 typeOf _   (TermString t  ) = Right TypeString
 typeOf ctx (TermList   t1 ) = Right $ TypeList (fmap (typeOf ctx) t1)
+typeOf ctx (TermTuple  t1 ) = Right $ TypeList (fmap (typeOf ctx) t1)
 typeOf ctx (TermAs   s  t ) = Right t
 typeOf ctx (TermSet  s  t ) = typeOf ctx t
 typeOf ctx (TermPair t1 t2) = Right $ TypePair (typeOf ctx t1) (typeOf ctx t2)

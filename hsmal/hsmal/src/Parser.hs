@@ -9,6 +9,7 @@ import           Syntax
 import           Text.Parsec
 import qualified Text.Parsec.Token             as P
 import           TypeChecker                    ( typeOf )
+import           Data.Char                      ( digitToInt )
 
 type Parser a = ParsecT String Context Identity a
 
@@ -120,14 +121,14 @@ parseFst = do
     TermPair t1 t2 -> return t1
     _              -> error "no fst"
 
-parseSnd :: Parser Term
-parseSnd = do
-  p <- parsePair
+parseIndex :: Parser Term
+parseIndex = do
+  p <- parseTuple
   dot
-  reserved "2"
+  index <- many1 (oneOf ['0' .. '9'])
   case p of
-    TermPair t1 t2 -> return t2
-    _              -> error "no snd"
+    TermTuple ts -> return $ ts !! (read index :: Int)
+    _            -> error "no index"
 parseSet :: Parser Term
 parseSet = do
   reserved "set"
@@ -321,6 +322,20 @@ parseList = do
   ts <- many parseSeTerm
   return $ TermList (t : ts)
 
+parseTuple :: Parser Term
+parseTuple = do
+  reserved "["
+  t  <- parseTerm
+  ts <- many parseSeTuple
+  reserved "]"
+  return $ TermTuple (t : ts)
+
+parseSeTuple :: Parser Term
+parseSeTuple = do
+  reserved ","
+  many space
+  parseTerm
+
 parseSeTerm :: Parser Term
 parseSeTerm = do
   reserved ";"
@@ -343,9 +358,8 @@ parseTerm = chainl1
   <|> try parseLet
   <|> try parseAs
   <|> try parseVar
-  <|> try parseFst
-  <|> try parseSnd
-  <|> try parsePair
+  <|> try parseIndex
+  <|> try parseTuple
   <|> parens parseTerm
   )
   (return TermApp)
