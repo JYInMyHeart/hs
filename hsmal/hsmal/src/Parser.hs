@@ -180,7 +180,6 @@ parseVar = do
     _                   -> do
       idx <- getVarIndex var ctx
       return $ TermVar idx (length ctx)
-    -- _ -> error "undefined let value"
 
 
 
@@ -321,6 +320,15 @@ parseList = do
   t  <- parseTerm
   ts <- many parseSeTerm
   return $ TermList (t : ts)
+
+parseRecord :: Parser Term
+parseRecord = do
+  reserved "{"
+  t <- parseTerm
+  ts <- many parseSeTuple
+  reserved "}"
+  return $ TermRecord (t:ts)
+
 
 parseTuple :: Parser Term
 parseTuple = do
