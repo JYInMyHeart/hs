@@ -1,3 +1,0 @@
-Just (Array [Array [],Boolean True,Number 54.747087091745314,Number (-62.989200355741545),Object [(String "xkln",Array []),(String " f",String "j'd4"),(String "9{5",Boolean True),(String "r4",Number (-76.5505579349438))]])
-Just (Array [Array [],Boolean True,Number 54.747087091745314,Number (-62.989200355741545),Object [(String "xkln",Array []),(String "f",String "j'd4"),(String "9{5",Boolean True),(String "r4",Number (-76.5505579349438))]])
-Array [Array [],Boolean True,Number 54.747087091745314,Number (-62.989200355741545),Object [(String "xkln",Array []),(String " f",String "j'd4"),(String "9{5",Boolean True),(String "r4",Number (-76.5505579349438))]]  
