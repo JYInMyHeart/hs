@@ -23,31 +23,7 @@ untypedDef = P.LanguageDef
   , P.identLetter     = alphaNum
   , P.opStart         = letter
   , P.opLetter        = alphaNum
-  , P.reservedOpNames = [ "\\"
-                        , "if"
-                        , "then"
-                        , "else"
-                        , "true"
-                        , "false"
-                        , "Bool"
-                        , "succ"
-                        , "pred"
-                        , "iszero"
-                        , "Nat"
-                        , "Unit"
-                        , "unit"
-                        , "_"
-                        , "as"
-                        , ";"
-                        , "]"
-                        , "["
-                        , "\""
-                        , "String"
-                        , "let"
-                        , "in"
-                        , "set"
-                        , "="
-                        ]
+  , P.reservedOpNames = []
   , P.reservedNames   = [ "\\"
                         , "if"
                         , "then"
@@ -324,10 +300,10 @@ parseList = do
 parseRecord :: Parser Term
 parseRecord = do
   reserved "{"
-  t <- parseTerm
+  t  <- parseTerm
   ts <- many parseSeTuple
   reserved "}"
-  return $ TermRecord (t:ts)
+  return $ TermRecord (t : ts)
 
 
 parseTuple :: Parser Term
