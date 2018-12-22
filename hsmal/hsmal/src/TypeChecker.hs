@@ -2,7 +2,6 @@ module TypeChecker where
 
 import           Context
 import           Evaluator
--- import           Parser
 import           Syntax
 
 typeOf :: Context -> Term -> Either TypeError Type
