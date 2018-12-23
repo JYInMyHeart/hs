@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module Context where
 
 import           Control.Monad
@@ -28,7 +29,7 @@ instance Show Type where
       t1
   show (TypeArrow tyT1 tyT2) = show tyT1 ++ "->" ++ show tyT2
 
-showEither = \x -> case x of
+showEither = \case
   (Right ty ) -> show ty ++ ";\n "
   (Left  err) -> show err ++ ";\n "
 

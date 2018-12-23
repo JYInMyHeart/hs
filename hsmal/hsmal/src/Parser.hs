@@ -179,8 +179,8 @@ parseAbs =
           reserved "_"
           tyVar <- parseTypeAnnotation
           dot
-          term <- parseTerm
-          return $ TermAbs "_" tyVar term
+          TermAbs "_" tyVar <$> parseTerm
+
 
 parseUnit :: Parser Term
 parseUnit = reserved "unit" >> return TermUnit

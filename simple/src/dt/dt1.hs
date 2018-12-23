@@ -3,10 +3,8 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeFamilies   #-}
 {-# LANGUAGE TypeOperators  #-}
-
 data Z
 data S n
-
 data Nat a where
   Zero :: Nat Z
   Succ :: Nat a -> Nat (S a)
@@ -62,9 +60,35 @@ type instance n :~: Z = n
 type instance Z :~: m = Z
 type instance S n :~: S m = S (n :~: m)
 
+zip :: Vec a n -> Vec b m -> Vec (a, b) (n :~: m)
+zip VNil _ = VNil
+zip _ VNil = VNil
+zip (VCons x xs) (VCons y ys) = VCons (x, y) (zip xs ys)
 
 data Equal a b where
     EqZ :: Equal Z Z
     EqS :: Equal a b -> Equal (S a) (S b)
 
+type a === b = Equal a b
+
+refl :: Nat n -> n === n 
+refl Zero = EqZ
+refl (Succ x) = EqS $ refl x 
+
+symm :: a === b -> b === a
+symm EqZ = EqZ
+symm (EqS x) = EqS $ symm x
+
+(<=>) :: a === b -> b === c -> a === c
+EqZ <=> EqZ = EqZ
+EqS x <=> EqS y = EqS $ x <=> y 
+
+infixl 2 ===
+infixl 4 :+:
+infixl 4 :-:
+infixl 5 :*:
+
+plusComb :: Nat n -> Nat m -> Nat p -> n :+: (m :+: p) === n :+: m :+: p 
+plusComb Zero p q = refl (p + q)
+plusComb (Succ n) m p = EqS $ plusComb n m p 
 
