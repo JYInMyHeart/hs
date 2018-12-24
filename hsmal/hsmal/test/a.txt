@@ -38,4 +38,7 @@ temp 0;
 [(\ _:A.unit),((\ _:A.unit) "sb"),(succ 0),"sss"].3;
 --record
 {(a = 0),(b = succ 0),(c = \ _:A.unit)}.a;
-{(a = 0),(b = succ 0),(c = \ _:A.unit)}.c
+{(a = 0),(b = succ 0),(c = \ _:A.unit)}.c;
+--compose
+{(a = {(c = 0),(b = succ 0),(a = \ _:A.unit)}.c),(b = [(0),(succ 0)].1),(c = \ _:A.unit)}.b;
+{(a = {(c = 0),(b = succ 0),(a = \ _:A.unit)}.c),(b = [(0),(succ 0)].1),(c = \ _:A.unit)}.a
