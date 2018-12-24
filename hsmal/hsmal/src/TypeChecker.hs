@@ -46,6 +46,7 @@ typeOf ctx (TermIsZero t1)
 typeOf _   (TermString t  ) = Right TypeString
 typeOf ctx (TermList   t1 ) = Right $ TypeList (fmap (typeOf ctx) t1)
 typeOf ctx (TermTuple  t1 ) = Right $ TypeList (fmap (typeOf ctx) t1)
+typeOf ctx (TermRecord t1 ) = Right $ TypeList (fmap (typeOf ctx) t1)
 typeOf ctx (TermAs   s  t ) = Right t
 typeOf ctx (TermSet  s  t ) = typeOf ctx t
 typeOf ctx (TermPair t1 t2) = Right $ TypePair (typeOf ctx t1) (typeOf ctx t2)
@@ -54,11 +55,19 @@ typeOf ctx (TermPair t1 t2) = Right $ TypePair (typeOf ctx t1) (typeOf ctx t2)
 
 typeEquals :: Type -> Type -> Bool
 typeEquals t1 t2 = case t2 of
-  TypeT               -> t1 == TypeT
-  TypeBool            -> t1 == TypeT || t1 == TypeBool
-  TypeNat             -> t1 == TypeT || t1 == TypeNat
-  TypeUnit            -> t1 == TypeT || t1 == TypeUnit
-  TypeString          -> t1 == TypeT || t1 == TypeString
+  TypeT          -> t1 == TypeT
+  TypeBool       -> t1 == TypeT || t1 == TypeBool
+  TypeNat        -> t1 == TypeT || t1 == TypeNat
+  TypeUnit       -> t1 == TypeT || t1 == TypeUnit
+  TypeString     -> t1 == TypeT || t1 == TypeString
+  (TypeList tt1) -> case t1 of
+    (TypeList tt2) -> listTypesEquals tt1 tt2 (length tt1)
+    _              -> False
+  (TypePair t11 t12) -> case t1 of
+    (TypePair t21 t22) ->
+      (eitherTypeEquals t11 t21 && eitherTypeEquals t12 t22)
+        || (eitherTypeEquals t21 t11 && eitherTypeEquals t22 t12)
+    _ -> False
   (TypeArrow t11 t12) -> case t1 of
     (TypeArrow t21 t22) ->
       (typeEquals t11 t21 && typeEquals t12 t22)
@@ -73,4 +82,12 @@ eitherTypeEquals t1 t2 = case t1 of
     Right t22 -> tEquals t11 t22
     Left  _   -> False
   Left _ -> False
+
+listTypesEquals
+  :: [Either TypeError Type] -> [Either TypeError Type] -> Int -> Bool
+listTypesEquals t1 t2 n
+  | n == 0 = True
+  | n > 0 =  eitherTypeEquals (t1 !! (n - 1)) (t2 !! (n - 1))
+  && listTypesEquals t1 t2 (n - 1)
+  | otherwise = False
 

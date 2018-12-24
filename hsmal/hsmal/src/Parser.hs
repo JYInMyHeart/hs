@@ -48,6 +48,8 @@ untypedDef = P.LanguageDef
                         , "in"
                         , "set"
                         , "="
+                        , "{"
+                        , "}"
                         ]
   , P.caseSensitive   = True
   }
@@ -297,14 +299,37 @@ parseList = do
   ts <- many parseSeTerm
   return $ TermList (t : ts)
 
-parseRecord :: Parser Term
-parseRecord = do
+parseRecords :: Parser Term
+parseRecords = do
   reserved "{"
   t  <- parseTerm
-  ts <- many parseSeTuple
+  ts <- many parseRecordList
   reserved "}"
   return $ TermRecord (t : ts)
 
+parseRecordList :: Parser Term
+parseRecordList = do
+  reserved ","
+  many space
+  parseTerm
+parseRecordIndex :: Parser Term
+parseRecordIndex = do
+  p <- parseRecords
+  dot
+  var <- identifier
+  ctx <- getState
+  case getBinding var ctx of
+    Just (ValBinding a) -> return a
+    _                   -> error "undefined record type"
+
+parseRecord :: Parser Term
+parseRecord = do
+  var <- identifier
+  reserved "="
+  val <- parseTerm
+  ctx <- getState
+  setState $ addBinding (var, ValBinding val) ctx
+  return $ TermSet var val
 
 parseTuple :: Parser Term
 parseTuple = do
@@ -338,6 +363,9 @@ parseTerm = chainl1
   <|> parseUnit
   <|> try parseIf
   <|> try parseAbs
+  <|> try parseRecordIndex
+  <|> try parseRecords
+  <|> try parseRecord
   <|> try parseSet
   <|> try parseLet
   <|> try parseAs
