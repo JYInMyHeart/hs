@@ -4,13 +4,12 @@ import System.IO (hFlush,stdout)
 import System.Console.Haskeline
 import Control.Monad.Except (runExceptT)
 import qualified Data.Map as Map
-import Control.Monad.Trans (liftIO)
+import Control.Monad.Trans (liftIO,lift)
 import Control.Monad (mapM)
 import qualified Data.Traversable as DT
 import Reader (read_str)
 import Printer(_pr_str)
 import Types
-import System.IO.Unsafe (unsafePerformIO)
 import Env
 --read
 mal_read :: String -> IOThrows MalVal
@@ -106,19 +105,14 @@ repl_loop env = do
     Just ""  -> repl_loop env
     Just str -> do
       let res = runExceptT $ rep str env
-      out <- case unsafePerformIO res of
+      r   <- lift res
+      out <- case r of
         Left  (StringError str) -> return $ "Error: " ++ str
         Left  (MalValError mv ) -> return $ "Error: " ++ show mv
         Right val               -> return val
       outputStrLn out
       repl_loop env
 
-printMalVal mal = do
-  let res = runExceptT mal
-  case unsafePerformIO res of
-    Left  (StringError str) -> putStrLn $ "Error: " ++ show str
-    Left  (MalValError mv ) -> putStrLn $ "Error: " ++ show mv
-    Right val               -> print val
 
 main = do
   x <- env_new Nothing
