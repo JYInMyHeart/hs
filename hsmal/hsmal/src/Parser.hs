@@ -377,3 +377,6 @@ parseTerm = chainl1
   (return TermApp)
 
 
+main = print $ choice [parseTerm, parseAbs]
+
+
