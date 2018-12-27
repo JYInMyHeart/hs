@@ -1,9 +1,9 @@
 module Types where
 
-import Data.IORef (IORef)
-import qualified Data.Map as Map
-import Control.Exception as CE
-import Control.Monad.Except
+import           Data.IORef                     ( IORef )
+import qualified Data.Map                      as Map
+import           Control.Exception             as CE
+import           Control.Monad.Except
 
 --Base Mal types
 
@@ -69,3 +69,71 @@ _func_meta fn meta = Func (Fn fn) meta
 _to_list (MalList   lst _) = return lst
 _to_list (MalVector lst _) = return lst
 _to_list _                 = throwStr "_to_list expected a MalList or MalVector"
+
+_malfunc ast env params fn = MalFunc
+  { fn     = (Fn fn)
+  , ast    = ast
+  , env    = env
+  , params = params
+  , macro  = False
+  , meta   = Nil
+  }
+_malfunc_meta ast env params fn meta = MalFunc
+  { fn     = (Fn fn)
+  , ast    = ast
+  , env    = env
+  , params = params
+  , macro  = False
+  , meta   = meta
+  }
+
+_fn_Q (MalFunc { macro = False }) = MalTrue
+_fn_Q (Func _ _                 ) = MalTrue
+_fn_Q _                           = MalFalse
+
+_macro_Q (MalFunc { macro = True }) = MalTrue
+_macro_Q _                          = MalFalse
+
+
+-- Scalars
+_nil_Q Nil = MalTrue
+_nil_Q _   = MalFalse
+
+_true_Q MalTrue = MalTrue
+_true_Q _       = MalFalse
+
+_false_Q MalFalse = MalTrue
+_false_Q _        = MalFalse
+
+_symbol_Q (MalSymbol _) = MalTrue
+_symbol_Q _             = MalFalse
+
+_string_Q (MalString ('\x029e' : _)) = MalFalse
+_string_Q (MalString _             ) = MalTrue
+_string_Q _                          = MalFalse
+
+_keyword_Q (MalString ('\x029e' : _)) = MalTrue
+_keyword_Q _                          = MalFalse
+
+_number_Q (MalNumber _) = MalTrue
+_number_Q _             = MalFalse
+
+-- Lists
+
+_list_Q (MalList _ _) = MalTrue
+_list_Q _             = MalFalse
+
+-- Vectors
+
+_vector_Q (MalVector _ _) = MalTrue
+_vector_Q _               = MalFalse
+
+-- Hash Maps
+
+_hash_map_Q (MalHashMap _ _) = MalTrue
+_hash_map_Q _                = MalFalse
+
+-- Atoms
+
+_atom_Q (MalAtom _ _) = MalTrue
+_atom_Q _             = MalFalse

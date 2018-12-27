@@ -10,7 +10,7 @@ data Interaction :: * -> * where
 instance Functor Interaction where
   fmap f (Return a) = Return (f a)
   fmap f (Say str fu) = Say str (\() -> fmap f (fu ()))
-  fmap f (Ask fs) = Ask (\str -> fmap f (fs str))
+  fmap f (Ask fs) = Ask (fmap f . fs)
 
 instance Applicatibe Interaction where
   pure = return
