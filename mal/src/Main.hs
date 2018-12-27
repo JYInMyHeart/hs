@@ -57,7 +57,7 @@ apply_ast ast@(MalList (MalSymbol "def!" : args) _) env = do
       evaled <- eval a2 env
       liftIO $ env_set env a1 evaled
     _ -> throwStr "invalid def!"
-apply_ast ast@(MalList (MalSymbol "let*" : args) _) env = do
+apply_ast ast@(MalList (MalSymbol "let" : args) _) env = do
   case args of
     (a1 : a2 : []) -> do
       params  <- (_to_list a1)
@@ -81,7 +81,7 @@ apply_ast ast@(MalList (MalSymbol "if" : args) _) env = do
       cond <- eval a1 env
       if cond == MalFalse || cond == Nil then return Nil else eval a2 env
     _ -> throwStr "invalid if"
-apply_ast ast@(MalList (MalSymbol "fn*" : args) _) env = do
+apply_ast ast@(MalList (MalSymbol "fn" : args) _) env = do
   case args of
     (a1 : a2 : []) -> do
       params <- (_to_list a1)
@@ -141,5 +141,5 @@ repl_loop env = do
 main = do
   repl_env <- env_new Nothing
   (mapM (\(k, v) -> (env_set repl_env (MalSymbol k) v)) Core.ns)
-  runExceptT $ rep "(def! not (fn* (a) (if a false true)))" repl_env
+  runExceptT $ rep "(def! not (fn (a) (if a false true)))" repl_env
   runInputT defaultSettings (repl_loop repl_env)
