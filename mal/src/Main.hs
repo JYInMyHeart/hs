@@ -3,6 +3,7 @@ module Main where
 import           System.IO                      ( hFlush
                                                 , stdout
                                                 )
+import           System.Environment             ( getArgs )
 import           System.Console.Haskeline
 import           Control.Monad.Except           ( runExceptT )
 import qualified Data.Map                      as Map
@@ -24,9 +25,8 @@ mal_read = read_str
 eval :: MalVal -> Env -> IOThrows MalVal
 eval ast env = do
   case ast of
-    (MalList   _ _) -> apply_ast ast env
-    (MalVector _ _) -> apply_ast ast env
-    _               -> eval_ast ast env
+    (MalList _ _) -> apply_ast ast env
+    _             -> eval_ast ast env
 
 let_bind :: Env -> [MalVal] -> IOThrows Env
 let_bind env []           = return env
@@ -38,13 +38,13 @@ let_bind env (b : e : xs) = do
 eval_ast :: MalVal -> Env -> IOThrows MalVal
 eval_ast sym@(MalSymbol _  ) env = env_get env sym
 eval_ast ast@(MalList lst m) env = do
-  new_lst <- mapM (\x -> eval x env) lst
+  new_lst <- mapM (`eval` env) lst
   return $ MalList new_lst m
 eval_ast ast@(MalVector lst m) env = do
-  new_lst <- mapM (\x -> eval x env) lst
+  new_lst <- mapM (`eval` env) lst
   return $ MalVector new_lst m
 eval_ast ast@(MalHashMap lst m) env = do
-  new_hm <- DT.mapM (\x -> (eval x env)) lst
+  new_hm <- DT.mapM (`eval` env) lst
   return $ MalHashMap new_hm m
 eval_ast ast env = return ast
 
@@ -139,7 +139,21 @@ repl_loop env = do
 
 
 main = do
+  args     <- getArgs
   repl_env <- env_new Nothing
   (mapM (\(k, v) -> (env_set repl_env (MalSymbol k) v)) Core.ns)
+  env_set repl_env (MalSymbol "eval") (_func (\[ast] -> eval ast repl_env))
+  env_set repl_env (MalSymbol "ARGV") (MalList [] Nil)
   runExceptT $ rep "(def! not (fn (a) (if a false true)))" repl_env
-  runInputT defaultSettings (repl_loop repl_env)
+  runExceptT $ rep
+    "(def! load-file (fn (f) (eval (read-string (str \"(do \" (slurp f) \")\")))))"
+    repl_env
+
+  if length args > 0
+    then do
+      env_set repl_env
+              (MalSymbol "ARGV")
+              (MalList (map MalString (drop 1 args)) Nil)
+      runExceptT $ rep ("(load-file \"" ++ (args !! 0) ++ "\")") repl_env
+      return ()
+    else runInputT defaultSettings (repl_loop repl_env)

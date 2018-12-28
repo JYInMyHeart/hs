@@ -70,6 +70,10 @@ _to_list (MalList   lst _) = return lst
 _to_list (MalVector lst _) = return lst
 _to_list _                 = throwStr "_to_list expected a MalList or MalVector"
 
+_get_call ((Func (Fn f) _) : _) = return f
+_get_call (MalFunc { fn = (Fn f) } : _) = return f
+_get_call _ = throwStr "_get_call first parameter is not a function "
+
 _malfunc ast env params fn = MalFunc
   { fn     = (Fn fn)
   , ast    = ast

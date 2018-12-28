@@ -1,13 +1,27 @@
 module Reader
-( read_str )
+  ( read_str
+  )
 where
 
-import Text.ParserCombinators.Parsec (
-    Parser, parse, space, char, digit, letter, try,
-    (<|>), oneOf, noneOf, many, many1, skipMany, skipMany1, sepEndBy)
-import qualified Data.Map as Map
+import           Text.ParserCombinators.Parsec  ( Parser
+                                                , parse
+                                                , space
+                                                , char
+                                                , digit
+                                                , letter
+                                                , try
+                                                , (<|>)
+                                                , oneOf
+                                                , noneOf
+                                                , many
+                                                , many1
+                                                , skipMany
+                                                , skipMany1
+                                                , sepEndBy
+                                                )
+import qualified Data.Map                      as Map
 
-import Types
+import           Types
 
 spaces :: Parser ()
 spaces = skipMany1 (oneOf ", \n")
@@ -21,7 +35,7 @@ ignored :: Parser ()
 ignored = skipMany (spaces <|> comment)
 
 symbol :: Parser Char
-symbol = oneOf "!@#$%&|*+-/:<+>?^_~"
+symbol = oneOf "!@#$%&|*+-/:<+>?^_=~"
 
 escaped :: Parser Char
 escaped = do
