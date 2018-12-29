@@ -2,3 +2,7 @@
 (def! bar (fn (n) (if (= n 0) 0 (foo (- n 1)))))
 
 ( (fn ( b & more) more ) 1 2 3 4 5 6 7 (fn (x) (+ x 1)))
+
+(def! sum2 (fn (n acc) (if (= n 0) acc (sum2 (- n 1) (+ n acc)))))
+
+(def! fact (fn (s n) (if (<= n 1) s (fact (* s n) (- n 1)))))
