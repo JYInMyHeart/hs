@@ -31,7 +31,7 @@ run1 _ _ = throwStr "function takes a single arguement"
 
 run_2 :: (MalVal -> MalVal -> MalVal) -> [MalVal] -> IOThrows MalVal
 run_2 f (x : y : []) = return $ f x y
-run_2 _ _            = throwStr "function takes a two arguements"
+run_2 _ _            = throwStr "function takes a two arguements" 
 
 
 throw (mv : []) = throwMalVal mv
