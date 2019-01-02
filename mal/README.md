@@ -1,2 +1,2 @@
 # mal
-mal langl bbhaskelh
+mal language
