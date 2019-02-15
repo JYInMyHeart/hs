@@ -3,6 +3,7 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeFamilies   #-}
 {-# LANGUAGE TypeOperators  #-}
+
 data Z
 data S n
 data Nat a where
@@ -88,6 +89,7 @@ infixl 4 :+:
 infixl 4 :-:
 infixl 5 :*:
 
+--plus
 plusComb :: Nat n -> Nat m -> Nat p -> n :+: (m :+: p) === n :+: m :+: p 
 plusComb Zero p q = refl (p + q)
 plusComb (Succ n) m p = EqS $ plusComb n m p 
